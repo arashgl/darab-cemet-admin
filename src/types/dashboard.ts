@@ -4,8 +4,10 @@ export interface Post {
   description: string;
   content: string;
   section: string;
+  tags?: string[];
   leadPicture?: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface PaginationMeta {
@@ -21,8 +23,26 @@ export interface PaginatedResponse<T> {
 }
 
 export interface ApiError {
-  message: string;
-  statusCode?: number;
+  statusCode: number;
+  message: string | string[];
+  error?: string;
+}
+
+export enum MediaType {
+  IMAGE = "image",
+  VIDEO = "video",
+}
+
+export interface Media {
+  id: string;
+  filename: string;
+  originalname: string;
+  path: string;
+  url: string;
+  mimetype: string;
+  size: number;
+  type: MediaType;
+  createdAt: string;
 }
 
 export interface User {

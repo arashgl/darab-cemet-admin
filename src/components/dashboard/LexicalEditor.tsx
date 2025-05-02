@@ -16,11 +16,13 @@ import { uploadApi } from "@/lib/api";
 import axios, { AxiosError } from "axios";
 import { $getSelection, $isRangeSelection } from "lexical";
 import { $insertNodes } from "lexical";
-import { ApiError } from "@/types/dashboard";
+import { ApiError, Media } from "@/types/dashboard";
 import { ListItemNode, ListNode } from "@lexical/list";
 import { INSERT_UNORDERED_LIST_COMMAND } from "@lexical/list";
 import { HeadingNode, $createHeadingNode } from "@lexical/rich-text";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
+import { MediaLibraryDialog } from "./MediaLibraryDialog";
+import { ImageIcon } from "lucide-react";
 
 // Simple error boundary component
 function ErrorBoundary({ children }: { children: React.ReactNode }) {
@@ -89,7 +91,11 @@ function ImagePlugin({
         if (axios.isAxiosError(error)) {
           const axiosError = error as AxiosError<ApiError>;
           if (axiosError.response?.data?.message) {
-            errorMessage = axiosError.response.data.message;
+            if (typeof axiosError.response.data.message === "string") {
+              errorMessage = axiosError.response.data.message;
+            } else if (Array.isArray(axiosError.response.data.message)) {
+              errorMessage = axiosError.response.data.message[0];
+            }
           }
         }
 
@@ -109,7 +115,8 @@ function ImagePlugin({
         size="sm"
         onClick={handleImageButtonClick}
       >
-        تصویر
+        <ImageIcon className="h-4 w-4 mr-1" />
+        آپلود تصویر
       </Button>
       <input
         type="file"
@@ -119,6 +126,50 @@ function ImagePlugin({
         className="hidden"
       />
     </>
+  );
+}
+
+// Media library plugin to insert media from the library
+function MediaLibraryPlugin({
+  apiUrl,
+  onError,
+  onSuccess,
+}: {
+  apiUrl: string;
+  onError: (message: string) => void;
+  onSuccess: (message: string) => void;
+}) {
+  const [editor] = useLexicalComposerContext();
+
+  const handleMediaSelect = (media: Media) => {
+    // Insert media into editor
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        const paragraph = $createParagraphNode();
+
+        if (media.type === "image") {
+          const imgTag = `<img src="${apiUrl}${media.url}" alt="${media.originalname}" />`;
+          paragraph.append($createTextNode(imgTag));
+        } else if (media.type === "video") {
+          const videoTag = `<video controls src="${apiUrl}${media.url}" title="${media.originalname}"></video>`;
+          paragraph.append($createTextNode(videoTag));
+        }
+
+        $insertNodes([paragraph]);
+      }
+    });
+
+    onSuccess("رسانه با موفقیت اضافه شد");
+  };
+
+  return (
+    <MediaLibraryDialog
+      onSelect={handleMediaSelect}
+      apiUrl={apiUrl}
+      onError={onError}
+      onSuccess={onSuccess}
+    />
   );
 }
 
@@ -297,8 +348,13 @@ export function LexicalEditor({
             <OnChangePlugin onChange={handleEditorChange} />
             <InitialStatePlugin initialContent={initialContent} />
           </div>
-          <div className="bg-white dark:bg-neutral-800 p-2 border-t border-neutral-200 dark:border-neutral-700">
+          <div className="bg-white dark:bg-neutral-800 p-2 border-t border-neutral-200 dark:border-neutral-700 flex gap-2">
             <ImagePlugin
+              apiUrl={apiUrl}
+              onError={onError}
+              onSuccess={onSuccess}
+            />
+            <MediaLibraryPlugin
               apiUrl={apiUrl}
               onError={onError}
               onSuccess={onSuccess}

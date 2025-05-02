@@ -17,6 +17,14 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectOption } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
+import { MediaLibrary } from "./dashboard/MediaLibrary";
+
+export enum PostSection {
+  OCCASIONS = "مناسبت ها",
+  ANNOUNCEMENTS = "اطلاعیه ها",
+  NEWS = "اخبار ها",
+  ACHIEVEMENTS = "افتخارات",
+}
 
 export function Dashboard() {
   const { user, token, logout } = useAuth();
@@ -38,16 +46,21 @@ export function Dashboard() {
     totalPages: 1,
   });
 
-  // Unique sections list (could be fetched from backend)
-  const sections = ["main", "news", "blog", "products"];
-
-  // Convert sections array to array of SelectOption objects
-  const sectionOptions: SelectOption[] = [
-    { value: "", label: "همه بخش‌ها" },
-    ...sections.map((section) => ({ value: section, label: section })),
+  // Section options based on the backend PostSection enum
+  const sections = [
+    { value: PostSection.OCCASIONS, label: "مناسبت ها" },
+    { value: PostSection.ANNOUNCEMENTS, label: "اطلاعیه ها" },
+    { value: PostSection.NEWS, label: "اخبار ها" },
+    { value: PostSection.ACHIEVEMENTS, label: "افتخارات" },
   ];
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+  // Convert to select options format with empty option for "all sections"
+  const sectionOptions: SelectOption[] = [
+    { value: "", label: "همه بخش‌ها" },
+    ...sections,
+  ];
+
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3100";
 
   // Setup API interceptors when token changes
   useEffect(() => {
@@ -77,7 +90,7 @@ export function Dashboard() {
 
       // Add filters to query params if they exist
       if (selectedSection) {
-        url += `&section=${selectedSection}`;
+        url += `&section=${encodeURIComponent(selectedSection)}`;
       }
 
       if (searchTitle.trim()) {
@@ -105,7 +118,10 @@ export function Dashboard() {
       if (axios.isAxiosError(error)) {
         const axiosError = error as import("axios").AxiosError<ApiError>;
         if (axiosError.response?.data?.message) {
-          errorMessage = axiosError.response.data.message;
+          errorMessage =
+            typeof axiosError.response.data.message === "string"
+              ? axiosError.response.data.message
+              : axiosError.response.data.message[0];
         }
       }
 
@@ -169,7 +185,10 @@ export function Dashboard() {
       if (axios.isAxiosError(error)) {
         const axiosError = error as import("axios").AxiosError<ApiError>;
         if (axiosError.response?.data?.message) {
-          errorMessage = axiosError.response.data.message;
+          errorMessage =
+            typeof axiosError.response.data.message === "string"
+              ? axiosError.response.data.message
+              : axiosError.response.data.message[0];
         }
       }
 
@@ -191,6 +210,7 @@ export function Dashboard() {
           <TabsList className="mb-8">
             <TabsTrigger value="create">ایجاد پست</TabsTrigger>
             <TabsTrigger value="view">مشاهده پست‌ها</TabsTrigger>
+            <TabsTrigger value="media">کتابخانه رسانه</TabsTrigger>
           </TabsList>
 
           <TabsContent value="create">
@@ -200,7 +220,7 @@ export function Dashboard() {
                 fetchPosts(currentPage);
               }}
               onError={setError}
-              apiUrl={API_URL}
+              apiUrl={apiUrl}
             />
           </TabsContent>
 
@@ -289,9 +309,17 @@ export function Dashboard() {
               isLoading={isLoading}
               onEdit={openEditDialog}
               onDelete={deletePost}
-              apiUrl={API_URL}
+              apiUrl={apiUrl}
               pagination={pagination}
               onPageChange={handlePageChange}
+            />
+          </TabsContent>
+
+          <TabsContent value="media">
+            <MediaLibrary
+              apiUrl={apiUrl}
+              onError={setError}
+              onSuccess={setSuccess}
             />
           </TabsContent>
         </Tabs>
@@ -306,7 +334,7 @@ export function Dashboard() {
           fetchPosts(currentPage);
         }}
         onError={setError}
-        apiUrl={API_URL}
+        apiUrl={apiUrl}
       />
 
       {error && (

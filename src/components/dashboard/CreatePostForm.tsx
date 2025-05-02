@@ -12,6 +12,8 @@ import { LexicalEditor } from "./LexicalEditor";
 import { uploadApi } from "@/lib/api";
 import axios, { AxiosError } from "axios";
 import { ApiError } from "@/types/dashboard";
+import { PostSection } from "../Dashboard";
+import { X } from "lucide-react";
 
 interface CreatePostFormProps {
   onSuccess: (message: string) => void;
@@ -27,12 +29,21 @@ export function CreatePostForm({
   const [isCreating, setIsCreating] = useState(false);
   const [leadPictureFile, setLeadPictureFile] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
   const [newPost, setNewPost] = useState({
     title: "",
     description: "",
     content: "",
-    section: "news",
+    section: PostSection.NEWS,
   });
+
+  const sections = [
+    { value: PostSection.OCCASIONS, label: "مناسبت ها" },
+    { value: PostSection.ANNOUNCEMENTS, label: "اطلاعیه ها" },
+    { value: PostSection.NEWS, label: "اخبار ها" },
+    { value: PostSection.ACHIEVEMENTS, label: "افتخارات" },
+  ];
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -66,6 +77,18 @@ export function CreatePostForm({
     }));
   };
 
+  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && tagInput.trim() !== "") {
+      e.preventDefault();
+      setTags([...tags, tagInput.trim()]);
+      setTagInput("");
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(tags.filter((tag) => tag !== tagToRemove));
+  };
+
   const createPost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
@@ -87,6 +110,17 @@ export function CreatePostForm({
       formData.append("content", newPost.content);
       formData.append("section", newPost.section);
 
+      // Add tags to the form data - fixing array format
+      if (tags.length > 0) {
+        // Add each tag as a separate entry with the same key name
+        tags.forEach((tag) => {
+          formData.append("tags[]", tag);
+        });
+      } else {
+        // Ensure empty array is sent if no tags
+        formData.append("tags", "[]");
+      }
+
       if (leadPictureFile) {
         formData.append("leadPicture", leadPictureFile, leadPictureFile.name);
       }
@@ -104,8 +138,10 @@ export function CreatePostForm({
         title: "",
         description: "",
         content: "",
-        section: "news",
+        section: PostSection.NEWS,
       });
+      setTags([]);
+      setTagInput("");
       setLeadPictureFile(null);
       setPreviewImage(null);
     } catch (error) {
@@ -161,9 +197,11 @@ export function CreatePostForm({
                 required
                 className="flex h-10 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-950 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300"
               >
-                <option value="news">اخبار</option>
-                <option value="products">محصولات</option>
-                <option value="blog">بلاگ</option>
+                {sections.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -181,6 +219,36 @@ export function CreatePostForm({
               required
               rows={2}
               className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-950 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="tags" className="text-sm font-medium">
+              برچسب‌ها
+            </label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {tags.map((tag, index) => (
+                <div
+                  key={index}
+                  className="flex items-center bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded-md"
+                >
+                  <span className="text-sm">{tag}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    className="ml-1 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <Input
+              id="tags"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={handleAddTag}
+              placeholder="برچسب را وارد کرده و Enter را بزنید"
             />
           </div>
 

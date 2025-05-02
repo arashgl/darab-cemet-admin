@@ -11,6 +11,7 @@ import { LexicalEditor } from "./LexicalEditor";
 import { uploadApi } from "@/lib/api";
 import axios, { AxiosError } from "axios";
 import { ApiError, Post } from "@/types/dashboard";
+import { X } from "lucide-react";
 
 interface EditPostDialogProps {
   post: Post | null;
@@ -32,6 +33,7 @@ export function EditPostDialog({
   const [isEditing, setIsEditing] = useState(false);
   const [leadPictureFile, setLeadPictureFile] = useState<File | null>(null);
   const [currentPost, setCurrentPost] = useState<Post | null>(null);
+  const [tagInput, setTagInput] = useState("");
 
   // Update local state when post changes
   useEffect(() => {
@@ -69,6 +71,29 @@ export function EditPostDialog({
     });
   };
 
+  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && tagInput.trim() !== "" && currentPost) {
+      e.preventDefault();
+      const newTags = [...(currentPost.tags || []), tagInput.trim()];
+      setCurrentPost((prev) => {
+        if (!prev) return null;
+        return { ...prev, tags: newTags };
+      });
+      setTagInput("");
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    if (!currentPost) return;
+    const newTags = (currentPost.tags || []).filter(
+      (tag: string) => tag !== tagToRemove
+    );
+    setCurrentPost((prev) => {
+      if (!prev) return null;
+      return { ...prev, tags: newTags };
+    });
+  };
+
   const handleUpdatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentPost) return;
@@ -81,6 +106,17 @@ export function EditPostDialog({
       formData.append("description", currentPost.description);
       formData.append("content", currentPost.content);
       formData.append("section", currentPost.section);
+
+      // Add tags to the form data - fixing array format
+      if (currentPost.tags && currentPost.tags.length > 0) {
+        // Add each tag as a separate entry with the same key name
+        currentPost.tags.forEach((tag) => {
+          formData.append("tags[]", tag);
+        });
+      } else {
+        // Ensure empty array is sent if no tags
+        formData.append("tags", "[]");
+      }
 
       if (leadPictureFile) {
         formData.append("leadPicture", leadPictureFile);
@@ -154,6 +190,36 @@ export function EditPostDialog({
                 <option value="blog">بلاگ</option>
               </select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="edit-tags" className="text-sm font-medium">
+              برچسب‌ها
+            </label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {(currentPost.tags || []).map((tag: string, index: number) => (
+                <div
+                  key={index}
+                  className="flex items-center bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded-md"
+                >
+                  <span className="text-sm">{tag}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    className="ml-1 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <Input
+              id="edit-tags"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={handleAddTag}
+              placeholder="برچسب را وارد کرده و Enter را بزنید"
+            />
           </div>
 
           <div className="space-y-2">
