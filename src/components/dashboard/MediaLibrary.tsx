@@ -394,7 +394,7 @@ export function MediaLibrary({
             </AlertDialogTitle>
             <AlertDialogDescription>
               این عملیات غیرقابل بازگشت است. این فایل از کتابخانه رسانه حذف
-              خواهد شد.
+              خواهد شد. 
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -28,8 +28,17 @@ export function MediaLibraryDialog({
   const [isOpen, setIsOpen] = useState(false);
 
   const handleMediaSelect = (media: Media) => {
-    onSelect(media);
-    setIsOpen(false);
+    // Prevent any default behavior
+    try {
+      // Call onSelect with the media
+      onSelect(media);
+      // Close the dialog
+      setIsOpen(false);
+    } catch (error) {
+      // Handle any errors that might occur during selection
+      onError("خطا در انتخاب رسانه");
+      console.error("Media selection error:", error);
+    }
   };
 
   return (

@@ -142,25 +142,32 @@ function MediaLibraryPlugin({
   const [editor] = useLexicalComposerContext();
 
   const handleMediaSelect = (media: Media) => {
-    // Insert media into editor
-    editor.update(() => {
-      const selection = $getSelection();
-      if ($isRangeSelection(selection)) {
-        const paragraph = $createParagraphNode();
+    try {
+      // Insert media into editor
+      editor.update(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          const paragraph = $createParagraphNode();
 
-        if (media.type === "image") {
-          const imgTag = `<img src="${apiUrl}${media.url}" alt="${media.originalname}" />`;
-          paragraph.append($createTextNode(imgTag));
-        } else if (media.type === "video") {
-          const videoTag = `<video controls src="${apiUrl}${media.url}" title="${media.originalname}"></video>`;
-          paragraph.append($createTextNode(videoTag));
+          if (media.type === "image") {
+            const imgTag = `<img src="${apiUrl}${media.url}" alt="${media.originalname}" />`;
+            paragraph.append($createTextNode(imgTag));
+          } else if (media.type === "video") {
+            const videoTag = `<video controls src="${apiUrl}${media.url}" title="${media.originalname}"></video>`;
+            paragraph.append($createTextNode(videoTag));
+          }
+
+          $insertNodes([paragraph]);
         }
+      });
 
-        $insertNodes([paragraph]);
-      }
-    });
-
-    onSuccess("رسانه با موفقیت اضافه شد");
+      // The dialog will close itself via the MediaLibraryDialog component
+      // We don't need to show a success message as it creates navigation issues
+      // onSuccess("رسانه با موفقیت اضافه شد");
+    } catch (error) {
+      console.error("Error inserting media:", error);
+      onError("خطا در درج رسانه");
+    }
   };
 
   return (

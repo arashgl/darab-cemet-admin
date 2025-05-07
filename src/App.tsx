@@ -1,6 +1,7 @@
 import { LoginForm } from "@/components/LoginForm";
 import { Dashboard } from "@/components/Dashboard";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { ToastProvider } from "@/lib/toast";
 import "./index.css";
 
 // Custom CSS for animations
@@ -136,6 +137,7 @@ function App() {
   return (
     <AuthProvider>
       <AppContent />
+      <ToastProvider />
     </AuthProvider>
   );
 }
