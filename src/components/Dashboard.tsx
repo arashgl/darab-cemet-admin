@@ -17,6 +17,8 @@ import {
 import { CreatePostForm } from "./dashboard/CreatePostForm";
 import { PostsList } from "./dashboard/PostsList";
 import api from "@/lib/api";
+import { CategoryPage } from "./dashboard/CategoryPage";
+import { DeletePostDialog } from "./dashboard/DeletePostDialog";
 
 export enum PostSection {
   OCCASIONS = "مناسبت ها",
@@ -25,7 +27,7 @@ export enum PostSection {
   ACHIEVEMENTS = "افتخارات",
 }
 
-type PageType = "posts" | "products";
+type PageType = "posts" | "products" | "categories";
 
 // Enhanced PostsPage that includes post creation and listing
 const PostsPage = () => {
@@ -39,6 +41,8 @@ const PostsPage = () => {
   });
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<Post | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3100";
@@ -68,13 +72,19 @@ const PostsPage = () => {
     fetchPosts();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("آیا از حذف این پست اطمینان دارید؟")) {
-      return;
+  const openDeleteDialog = (id: string) => {
+    const post = posts.find((p) => p.id === id);
+    if (post) {
+      setPostToDelete(post);
+      setIsDeleteDialogOpen(true);
     }
+  };
+
+  const handleDelete = async () => {
+    if (!postToDelete) return;
 
     try {
-      await api.delete(`${apiUrl}/posts/${id}`);
+      await api.delete(`${apiUrl}/posts/${postToDelete.id}`);
       showToast.success("پست با موفقیت حذف شد!");
       fetchPosts(pagination.currentPage);
     } catch (error) {
@@ -124,7 +134,7 @@ const PostsPage = () => {
           posts={posts}
           isLoading={isLoading}
           onEdit={handleEdit}
-          onDelete={handleDelete}
+          onDelete={openDeleteDialog}
           apiUrl={apiUrl}
           pagination={pagination}
           onPageChange={handlePageChange}
@@ -141,6 +151,15 @@ const PostsPage = () => {
         onError={(message: string) => showToast.error(message)}
         apiUrl={apiUrl}
       />
+
+      {postToDelete && (
+        <DeletePostDialog
+          isOpen={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          onConfirm={handleDelete}
+          postTitle={postToDelete.title}
+        />
+      )}
     </div>
   );
 };
@@ -154,6 +173,8 @@ export function Dashboard() {
         return <PostsPage />;
       case "products":
         return <ProductsPage />;
+      case "categories":
+        return <CategoryPage />;
       default:
         return <PostsPage />;
     }

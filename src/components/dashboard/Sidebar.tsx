@@ -1,7 +1,7 @@
-import { FileText, Package } from "lucide-react";
+import { FileText, Package, FolderTree } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-type PageType = "posts" | "products";
+type PageType = "posts" | "products" | "categories";
 
 interface SidebarProps {
   currentPage: PageType;
@@ -19,6 +19,11 @@ export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
       id: "products",
       label: "محصولات",
       icon: <Package className="h-5 w-5" />,
+    },
+    {
+      id: "categories",
+      label: "دسته‌بندی‌ها",
+      icon: <FolderTree className="h-5 w-5" />,
     },
   ];
 
