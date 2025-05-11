@@ -13,6 +13,13 @@ import axios, { AxiosError } from "axios";
 import { ApiError, Post } from "@/types/dashboard";
 import { X } from "lucide-react";
 
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+}
+
 interface EditPostDialogProps {
   post: Post | null;
   isOpen: boolean;
@@ -34,6 +41,8 @@ export function EditPostDialog({
   const [leadPictureFile, setLeadPictureFile] = useState<File | null>(null);
   const [currentPost, setCurrentPost] = useState<Post | null>(null);
   const [tagInput, setTagInput] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Update local state when post changes
   useEffect(() => {
@@ -41,6 +50,26 @@ export function EditPostDialog({
       setCurrentPost(post);
     }
   }, [post]);
+
+  // Fetch categories when component mounts
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get(`${apiUrl}/categories`);
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        onError("دریافت دسته‌بندی‌ها با مشکل مواجه شد.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (isOpen) {
+      fetchCategories();
+    }
+  }, [apiUrl, onError, isOpen]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -56,10 +85,21 @@ export function EditPostDialog({
     if (!currentPost) return;
 
     const { name, value } = e.target;
-    setCurrentPost((prev) => {
-      if (!prev) return null;
-      return { ...prev, [name]: value };
-    });
+
+    if (name === "categoryId") {
+      setCurrentPost((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          categoryId: value ? parseInt(value, 10) : null,
+        };
+      });
+    } else {
+      setCurrentPost((prev) => {
+        if (!prev) return null;
+        return { ...prev, [name]: value };
+      });
+    }
   };
 
   const handleContentChange = (html: string) => {
@@ -107,15 +147,20 @@ export function EditPostDialog({
       formData.append("content", currentPost.content);
       formData.append("section", currentPost.section);
 
-      // Add tags to the form data - fixing array format
+      // Add categoryId if selected
+      if (
+        currentPost.categoryId !== null &&
+        currentPost.categoryId !== undefined
+      ) {
+        formData.append("categoryId", currentPost.categoryId.toString());
+      }
+
+      // Add tags to the form data
       if (currentPost.tags && currentPost.tags.length > 0) {
         // Add each tag as a separate entry with the same key name
         currentPost.tags.forEach((tag) => {
           formData.append("tags[]", tag);
         });
-      } else {
-        // Ensure empty array is sent if no tags
-        formData.append("tags", "[]");
       }
 
       if (leadPictureFile) {
@@ -190,6 +235,35 @@ export function EditPostDialog({
                 <option value="blog">بلاگ</option>
               </select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="edit-categoryId" className="text-sm font-medium">
+              دسته‌بندی
+            </label>
+            <select
+              id="edit-categoryId"
+              name="categoryId"
+              value={
+                currentPost.categoryId === null ||
+                currentPost.categoryId === undefined
+                  ? ""
+                  : currentPost.categoryId.toString()
+              }
+              onChange={handleChange}
+              className="flex h-10 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-950 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300"
+            >
+              <option value="">انتخاب دسته‌بندی</option>
+              {isLoading ? (
+                <option disabled>در حال بارگذاری...</option>
+              ) : (
+                categories.map((category) => (
+                  <option key={category.id} value={category.id.toString()}>
+                    {category.name}
+                  </option>
+                ))
+              )}
+            </select>
           </div>
 
           <div className="space-y-2">

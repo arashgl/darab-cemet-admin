@@ -34,6 +34,7 @@ export function CategoryPage() {
   );
   const [formData, setFormData] = useState({
     name: "",
+    slug: "",
     description: "",
   });
 
@@ -57,7 +58,7 @@ export function CategoryPage() {
   }, []);
 
   const resetForm = () => {
-    setFormData({ name: "", description: "" });
+    setFormData({ name: "", slug: "", description: "" });
     setEditingCategory(null);
   };
 
@@ -68,6 +69,14 @@ export function CategoryPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate slug client-side
+    if (!/^[a-zA-Z0-9_-]+$/.test(formData.slug)) {
+      showToast.error(
+        "اسلاگ باید فقط شامل حروف انگلیسی، اعداد، خط تیره و زیرخط باشد"
+      );
+      return;
+    }
 
     try {
       if (editingCategory) {
@@ -92,6 +101,7 @@ export function CategoryPage() {
     setEditingCategory(category);
     setFormData({
       name: category.name,
+      slug: category.slug || "",
       description: category.description || "",
     });
   };
@@ -145,6 +155,18 @@ export function CategoryPage() {
                 />
               </div>
               <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="slug">اسلاگ (انگلیسی، یکتا)</Label>
+                <Input
+                  id="slug"
+                  name="slug"
+                  value={formData.slug}
+                  onChange={handleInputChange}
+                  required
+                  pattern="^[a-zA-Z0-9_-]+$"
+                  title="فقط حروف انگلیسی، اعداد، خط تیره و زیرخط مجاز است"
+                />
+              </div>
+              <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="description">توضیحات</Label>
                 <Input
                   id="description"
@@ -188,6 +210,7 @@ export function CategoryPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-start">نام</TableHead>
+                  <TableHead className="text-start">اسلاگ</TableHead>
                   <TableHead className="text-start">توضیحات</TableHead>
                   <TableHead className="text-start">عملیات</TableHead>
                 </TableRow>
@@ -196,6 +219,7 @@ export function CategoryPage() {
                 {categories.map((category) => (
                   <TableRow key={category.id}>
                     <TableCell>{category.name}</TableCell>
+                    <TableCell>{category.slug}</TableCell>
                     <TableCell>{category.description || "-"}</TableCell>
                     <TableCell className="flex space-x-2 rtl:space-x-reverse">
                       <Button

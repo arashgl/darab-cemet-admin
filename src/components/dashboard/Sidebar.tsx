@@ -5,7 +5,7 @@ type PageType = "posts" | "products" | "categories";
 
 interface SidebarProps {
   currentPage: PageType;
-  setCurrentPage: React.Dispatch<React.SetStateAction<PageType>>;
+  setCurrentPage: (page: PageType) => void;
 }
 
 export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
@@ -28,17 +28,17 @@ export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
   ];
 
   return (
-    <aside className="w-64 h-[calc(100vh-64px)] bg-white dark:bg-neutral-800 border-e border-neutral-200 dark:border-neutral-700 overflow-y-auto">
+    <aside className="w-full md:w-64 bg-white dark:bg-neutral-800 border-b md:border-b-0 md:border-e border-neutral-200 dark:border-neutral-700 overflow-y-auto md:h-[calc(100vh-64px)]">
       <div className="p-4">
-        <h2 className="text-lg font-semibold mb-4">داشبورد</h2>
-        <nav className="space-y-1">
+        <h2 className="text-lg font-semibold mb-4 px-2">داشبورد</h2>
+        <nav className="flex flex-col space-y-1">
           {menuItems.map((item) => (
             <Button
               key={item.id}
               variant={
                 currentPage === (item.id as PageType) ? "default" : "ghost"
               }
-              className="w-full justify-start gap-2 mb-1"
+              className="w-full justify-start gap-2 mb-1 text-sm md:text-base"
               onClick={() => setCurrentPage(item.id as PageType)}
             >
               {item.icon}

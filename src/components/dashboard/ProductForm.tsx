@@ -24,6 +24,8 @@ import { API_URL } from "@/lib/constants";
 import { uploadApi } from "@/lib/api";
 import { showToast } from "@/lib/toast";
 import { Product } from "@/types/product";
+import { Category } from "@/types/dashboard";
+import axios from "axios";
 
 interface FormData {
   name: string;
@@ -33,6 +35,7 @@ interface FormData {
   advantages: string;
   applications: string;
   technicalSpecs: string;
+  categoryId: string;
   isActive: boolean;
 }
 
@@ -45,42 +48,51 @@ interface ProductFormProps {
 export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const form = useForm<FormData>({
     defaultValues: {
-      name: "",
-      type: "cement",
-      description: "",
-      features: "",
-      advantages: "",
-      applications: "",
-      technicalSpecs: "",
-      isActive: true,
+      name: product?.name || "",
+      type: product?.type || "cement",
+      description: product?.description || "",
+      features: product?.features ? product.features.join("\n") : "",
+      advantages: product?.advantages ? product.advantages.join("\n") : "",
+      applications: product?.applications
+        ? product.applications.join("\n")
+        : "",
+      technicalSpecs: product?.technicalSpecs
+        ? product.technicalSpecs.join("\n")
+        : "",
+      categoryId: product?.category?.id
+        ? String(product.category.id)
+        : product?.categoryId
+        ? String(product.categoryId)
+        : "0",
+      isActive: product?.isActive ?? true,
     },
   });
 
+  // Fetch categories
   useEffect(() => {
-    if (product) {
-      form.reset({
-        name: product.name,
-        type: product.type,
-        description: product.description,
-        features: product.features ? product.features.join("\n") : "",
-        advantages: product.advantages ? product.advantages.join("\n") : "",
-        applications: product.applications
-          ? product.applications.join("\n")
-          : "",
-        technicalSpecs: product.technicalSpecs
-          ? product.technicalSpecs.join("\n")
-          : "",
-        isActive: product.isActive,
-      });
-
-      if (product.image) {
-        setImagePreview(`${API_URL}/${product.image}`);
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/categories`);
+        setCategories(response.data || []);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        showToast.error("دریافت دسته‌بندی‌ها با مشکل مواجه شد");
       }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Set image preview
+  useEffect(() => {
+    if (product?.image) {
+      setImagePreview(`${API_URL}/${product.image}`);
     }
-  }, [product, form]);
+  }, [product]);
 
   const handleSubmit = async (data: FormData) => {
     setIsSubmitting(true);
@@ -101,7 +113,16 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
         : [];
 
       // Create the base payload with properly typed values
-      const payload = {
+      const payload: {
+        name: string;
+        type: string;
+        description: string;
+        features: string[];
+        advantages: string[];
+        applications: string[];
+        technicalSpecs: string[];
+        categoryId?: number;
+      } = {
         name: data.name,
         type: data.type,
         description: data.description,
@@ -110,6 +131,11 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
         applications: applicationsArray,
         technicalSpecs: technicalSpecsArray,
       };
+
+      // Add categoryId only if it's not "0"
+      if (data.categoryId !== "0") {
+        payload.categoryId = parseInt(data.categoryId, 10);
+      }
 
       const hasImage = document.getElementById("image") as HTMLInputElement;
       const hasImageFile =
@@ -273,10 +299,7 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>نوع محصول</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="نوع محصول را انتخاب کنید" />
@@ -292,6 +315,58 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
               </FormItem>
             )}
           />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="categoryId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>دسته‌بندی</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="دسته‌بندی را انتخاب کنید" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="0">بدون دسته‌بندی</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem
+                        key={category.id.toString()}
+                        value={category.id.toString()}
+                      >
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div>
+            <FormLabel htmlFor="image">تصویر محصول</FormLabel>
+            <Input
+              id="image"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="mt-1"
+            />
+            {imagePreview && (
+              <div className="mt-4">
+                <p className="text-sm mb-2">پیش‌نمایش تصویر:</p>
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="max-w-[200px] max-h-[200px] object-contain border rounded"
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         <FormField
@@ -398,29 +473,6 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
               </FormItem>
             )}
           />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <FormLabel htmlFor="image">تصویر محصول</FormLabel>
-            <Input
-              id="image"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="mt-1"
-            />
-            {imagePreview && (
-              <div className="mt-4">
-                <p className="text-sm mb-2">پیش‌نمایش تصویر:</p>
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="max-w-[200px] max-h-[200px] object-contain border rounded"
-                />
-              </div>
-            )}
-          </div>
         </div>
 
         <div className="flex justify-end space-x-2 space-x-reverse">

@@ -104,17 +104,22 @@ const PostsPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">مدیریت پست‌ها</h1>
-        <Button onClick={() => setShowCreateForm(!showCreateForm)}>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-4">
+        <h1 className="text-xl md:text-2xl font-bold">مدیریت پست‌ها</h1>
+        <Button
+          className="w-full sm:w-auto"
+          onClick={() => setShowCreateForm(!showCreateForm)}
+        >
           {showCreateForm ? "مشاهده پست‌ها" : "افزودن پست جدید"}
         </Button>
       </div>
 
       {showCreateForm ? (
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
-            <CardTitle>افزودن پست جدید</CardTitle>
+            <CardTitle className="text-lg md:text-xl">
+              افزودن پست جدید
+            </CardTitle>
             <CardDescription>اطلاعات پست را وارد کنید</CardDescription>
           </CardHeader>
           <CardContent>
@@ -166,6 +171,7 @@ const PostsPage = () => {
 
 export function Dashboard() {
   const [currentPage, setCurrentPage] = useState<PageType>("posts");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const renderPage = () => {
     switch (currentPage) {
@@ -182,10 +188,22 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50">
-      <Topbar />
-      <div className="flex">
-        <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
-        <main className="flex-1 px-6 py-8">{renderPage()}</main>
+      <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+      <div className="flex flex-col md:flex-row">
+        <div className={`md:block ${sidebarOpen ? "block" : "hidden"}`}>
+          <Sidebar
+            currentPage={currentPage}
+            setCurrentPage={(page) => {
+              setCurrentPage(page);
+              if (window.innerWidth < 768) {
+                setSidebarOpen(false);
+              }
+            }}
+          />
+        </div>
+        <main className="flex-1 px-4 sm:px-6 py-6 sm:py-8 overflow-x-auto">
+          {renderPage()}
+        </main>
       </div>
     </div>
   );

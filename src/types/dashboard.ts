@@ -6,6 +6,7 @@ export interface Post {
   section: string;
   tags?: string[];
   leadPicture?: string;
+  categoryId?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -13,6 +14,7 @@ export interface Post {
 export interface Category {
   id: number;
   name: string;
+  slug: string;
   description?: string;
 }
 

@@ -6,6 +6,13 @@ export interface Product {
   image: string | null;
   isActive: boolean;
   createdAt?: string; // Optional if not always present on creation/update forms
+  categoryId?: number; // Added category ID
+  category?: {
+    id: number;
+    name: string;
+    slug: string;
+    description?: string;
+  };
   features?: string[];
   advantages?: string[];
   applications?: string[];

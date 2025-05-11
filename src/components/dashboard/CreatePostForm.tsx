@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -14,6 +14,13 @@ import axios, { AxiosError } from "axios";
 import { ApiError } from "@/types/dashboard";
 import { PostSection } from "../Dashboard";
 import { X } from "lucide-react";
+
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+}
 
 interface CreatePostFormProps {
   onSuccess: (message: string) => void;
@@ -31,11 +38,14 @@ export function CreatePostForm({
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [newPost, setNewPost] = useState({
     title: "",
     description: "",
     content: "",
     section: PostSection.NEWS,
+    categoryId: null as number | null,
   });
 
   const sections = [
@@ -44,6 +54,24 @@ export function CreatePostForm({
     { value: PostSection.NEWS, label: "اخبار ها" },
     { value: PostSection.ACHIEVEMENTS, label: "افتخارات" },
   ];
+
+  useEffect(() => {
+    // Fetch categories when component mounts
+    const fetchCategories = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get(`${apiUrl}/categories`);
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        onError("دریافت دسته‌بندی‌ها با مشکل مواجه شد.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, [apiUrl, onError]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -67,7 +95,15 @@ export function CreatePostForm({
     >
   ) => {
     const { name, value } = e.target;
-    setNewPost((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "categoryId") {
+      setNewPost((prev) => ({
+        ...prev,
+        [name]: value ? parseInt(value, 10) : null,
+      }));
+    } else {
+      setNewPost((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleContentChange = (html: string) => {
@@ -110,15 +146,20 @@ export function CreatePostForm({
       formData.append("content", newPost.content);
       formData.append("section", newPost.section);
 
-      // Add tags to the form data - fixing array format
+      // Add categoryId if selected
+      if (newPost.categoryId !== null) {
+        formData.append("categoryId", newPost.categoryId.toString());
+      }
+
+      // Add tags to the form data
       if (tags.length > 0) {
         // Add each tag as a separate entry with the same key name
         tags.forEach((tag) => {
           formData.append("tags[]", tag);
         });
       } else {
-        // Ensure empty array is sent if no tags
-        formData.append("tags", "[]");
+        // Send an empty array for tags
+        formData.append("tags[]", "");
       }
 
       if (leadPictureFile) {
@@ -139,6 +180,7 @@ export function CreatePostForm({
         description: "",
         content: "",
         section: PostSection.NEWS,
+        categoryId: null,
       });
       setTags([]);
       setTagInput("");
@@ -204,6 +246,32 @@ export function CreatePostForm({
                 ))}
               </select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="categoryId" className="text-sm font-medium">
+              دسته‌بندی
+            </label>
+            <select
+              id="categoryId"
+              name="categoryId"
+              value={
+                newPost.categoryId === null ? "" : newPost.categoryId.toString()
+              }
+              onChange={handleChange}
+              className="flex h-10 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-950 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300"
+            >
+              <option value="">انتخاب دسته‌بندی</option>
+              {isLoading ? (
+                <option disabled>در حال بارگذاری...</option>
+              ) : (
+                categories.map((category) => (
+                  <option key={category.id} value={category.id.toString()}>
+                    {category.name}
+                  </option>
+                ))
+              )}
+            </select>
           </div>
 
           <div className="space-y-2">
