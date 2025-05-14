@@ -16,6 +16,9 @@ export interface Category {
   name: string;
   slug: string;
   description?: string;
+  parentId?: number | null;
+  parent?: Category | null;
+  children?: Category[];
 }
 
 export interface PaginationMeta {

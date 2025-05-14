@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { Button } from "../ui/button";
 import {
   Card,
@@ -23,6 +23,13 @@ import {
 import { Pencil, Trash2 } from "lucide-react";
 import { Category } from "@/types/dashboard";
 import { DeleteCategoryDialog } from "./DeleteCategoryDialog";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../ui/select";
 
 export function CategoryPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -36,6 +43,7 @@ export function CategoryPage() {
     name: "",
     slug: "",
     description: "",
+    parentId: "",
   });
 
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3100";
@@ -58,18 +66,19 @@ export function CategoryPage() {
   }, []);
 
   const resetForm = () => {
-    setFormData({ name: "", slug: "", description: "" });
+    setFormData({ name: "", slug: "", description: "", parentId: "" });
     setEditingCategory(null);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     // Validate slug client-side
     if (!/^[a-zA-Z0-9_-]+$/.test(formData.slug)) {
       showToast.error(
@@ -77,23 +86,33 @@ export function CategoryPage() {
       );
       return;
     }
-
     try {
+      const payload = {
+        ...formData,
+        parentId:
+          formData.parentId && formData.parentId !== "none"
+            ? Number(formData.parentId)
+            : undefined,
+      };
       if (editingCategory) {
-        // Update existing category
-        await api.patch(`${apiUrl}/categories/${editingCategory.id}`, formData);
+        await api.patch(`${apiUrl}/categories/${editingCategory.id}`, payload);
         showToast.success("دسته‌بندی با موفقیت بروزرسانی شد");
       } else {
-        // Create new category
-        await api.post(`${apiUrl}/categories`, formData);
+        await api.post(`${apiUrl}/categories`, payload);
         showToast.success("دسته‌بندی با موفقیت ایجاد شد");
       }
-
       resetForm();
       fetchCategories();
     } catch (error) {
       console.error("Error saving category:", error);
-      showToast.error("ذخیره دسته‌بندی با مشکل مواجه شد");
+      if (
+        error instanceof AxiosError &&
+        error.response?.data.statusCode === 409
+      ) {
+        showToast.error("این دسته‌بندی قبلا ایجاد شده است");
+      } else {
+        showToast.error("ذخیره دسته‌بندی با مشکل مواجه شد");
+      }
     }
   };
 
@@ -103,6 +122,7 @@ export function CategoryPage() {
       name: category.name,
       slug: category.slug || "",
       description: category.description || "",
+      parentId: category.parentId ? String(category.parentId) : "",
     });
   };
 
@@ -175,6 +195,35 @@ export function CategoryPage() {
                   onChange={handleInputChange}
                 />
               </div>
+              <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="parentId">دسته‌بندی والد (اختیاری)</Label>
+                <Select
+                  value={formData.parentId === "" ? "none" : formData.parentId}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      parentId: value === "none" ? "" : value,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="بدون والد" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">بدون والد</SelectItem>
+                    {categories
+                      .filter(
+                        (cat) =>
+                          !editingCategory || cat.id !== editingCategory.id
+                      )
+                      .map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id.toString()}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="flex justify-end space-x-2 rtl:space-x-reverse">
               {editingCategory && (
@@ -212,33 +261,40 @@ export function CategoryPage() {
                   <TableHead className="text-start">نام</TableHead>
                   <TableHead className="text-start">اسلاگ</TableHead>
                   <TableHead className="text-start">توضیحات</TableHead>
+                  <TableHead className="text-start">والد</TableHead>
                   <TableHead className="text-start">عملیات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {categories.map((category) => (
-                  <TableRow key={category.id}>
-                    <TableCell>{category.name}</TableCell>
-                    <TableCell>{category.slug}</TableCell>
-                    <TableCell>{category.description || "-"}</TableCell>
-                    <TableCell className="flex space-x-2 rtl:space-x-reverse">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(category)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openDeleteDialog(category)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {categories.map((category) => {
+                  const parent = categories.find(
+                    (cat) => cat.id === category.parentId
+                  );
+                  return (
+                    <TableRow key={category.id}>
+                      <TableCell>{category.name}</TableCell>
+                      <TableCell>{category.slug}</TableCell>
+                      <TableCell>{category.description || "-"}</TableCell>
+                      <TableCell>{parent ? parent.name : "-"}</TableCell>
+                      <TableCell className="flex space-x-2 rtl:space-x-reverse">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(category)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openDeleteDialog(category)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
