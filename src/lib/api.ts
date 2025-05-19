@@ -8,6 +8,20 @@ const api = axios.create({
   },
 });
 
+export enum PostSection {
+  OCCASIONS = "مناسبت ها",
+  ANNOUNCEMENTS = "اطلاعیه ها",
+  NEWS = "اخبار ها",
+  ACHIEVEMENTS = "افتخارات",
+  SLIDER = "اسلایدر",
+}
+export const sections = [
+  { value: PostSection.OCCASIONS, label: "مناسبت ها" },
+  { value: PostSection.ANNOUNCEMENTS, label: "اطلاعیه ها" },
+  { value: PostSection.NEWS, label: "اخبار ها" },
+  { value: PostSection.ACHIEVEMENTS, label: "افتخارات" },
+  { value: PostSection.SLIDER, label: "اسلایدر" },
+];
 // Variable to store interceptor IDs
 let apiInterceptorId: number | null = null;
 let uploadApiInterceptorId: number | null = null;

@@ -12,8 +12,8 @@ import { LexicalEditor } from "./LexicalEditor";
 import { uploadApi } from "@/lib/api";
 import axios, { AxiosError } from "axios";
 import { ApiError } from "@/types/dashboard";
-import { PostSection } from "../Dashboard";
 import { X } from "lucide-react";
+import { sections, PostSection } from "@/lib/api";
 
 interface Category {
   id: number;
@@ -47,13 +47,6 @@ export function CreatePostForm({
     section: PostSection.NEWS,
     categoryId: null as number | null,
   });
-
-  const sections = [
-    { value: PostSection.OCCASIONS, label: "مناسبت ها" },
-    { value: PostSection.ANNOUNCEMENTS, label: "اطلاعیه ها" },
-    { value: PostSection.NEWS, label: "اخبار ها" },
-    { value: PostSection.ACHIEVEMENTS, label: "افتخارات" },
-  ];
 
   useEffect(() => {
     // Fetch categories when component mounts

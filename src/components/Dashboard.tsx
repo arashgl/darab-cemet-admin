@@ -20,13 +20,6 @@ import api from "@/lib/api";
 import { CategoryPage } from "./dashboard/CategoryPage";
 import { DeletePostDialog } from "./dashboard/DeletePostDialog";
 
-export enum PostSection {
-  OCCASIONS = "مناسبت ها",
-  ANNOUNCEMENTS = "اطلاعیه ها",
-  NEWS = "اخبار ها",
-  ACHIEVEMENTS = "افتخارات",
-}
-
 type PageType = "posts" | "products" | "categories";
 
 // Enhanced PostsPage that includes post creation and listing
