@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { EditPostDialog } from "./dashboard/EditPostDialog";
 import { showToast } from "@/lib/toast";
-import { Post } from "@/types/dashboard";
+import { Post, Category } from "@/types/dashboard";
 import { Sidebar } from "./dashboard/Sidebar";
 import { Topbar } from "./dashboard/Topbar";
 import { ProductsPage } from "./dashboard/ProductsPage";
@@ -19,6 +19,14 @@ import { PostsList } from "./dashboard/PostsList";
 import api from "@/lib/api";
 import { CategoryPage } from "./dashboard/CategoryPage";
 import { DeletePostDialog } from "./dashboard/DeletePostDialog";
+import { Input } from "./ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 type PageType = "posts" | "products" | "categories";
 
@@ -37,13 +45,36 @@ const PostsPage = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3100";
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get(`${apiUrl}/categories`);
+      setCategories(response.data || []);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      showToast.error("دریافت دسته‌بندی‌ها با مشکل مواجه شد");
+    }
+  };
 
   const fetchPosts = async (page = 1) => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${apiUrl}/posts?page=${page}&limit=10`);
+      let url = `${apiUrl}/posts?page=${page}&limit=10`;
+
+      if (searchTerm) {
+        url += `&title=${encodeURIComponent(searchTerm)}`;
+      }
+
+      if (selectedCategory && selectedCategory !== "all") {
+        url += `&categoryId=${selectedCategory}`;
+      }
+
+      const response = await axios.get(url);
       setPosts(response.data.data || []);
       setPagination(
         response.data.meta || {
@@ -63,7 +94,13 @@ const PostsPage = () => {
 
   useEffect(() => {
     fetchPosts();
+    fetchCategories();
+    setSelectedCategory("all");
   }, []);
+
+  useEffect(() => {
+    fetchPosts(1);
+  }, [searchTerm, selectedCategory]);
 
   const openDeleteDialog = (id: string) => {
     const post = posts.find((p) => p.id === id);
@@ -93,6 +130,19 @@ const PostsPage = () => {
 
   const handlePageChange = (page: number) => {
     fetchPosts(page);
+  };
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value);
+  };
+
+  const handleResetFilters = () => {
+    setSearchTerm("");
+    setSelectedCategory("all");
   };
 
   return (
@@ -128,15 +178,58 @@ const PostsPage = () => {
           </CardContent>
         </Card>
       ) : (
-        <PostsList
-          posts={posts}
-          isLoading={isLoading}
-          onEdit={handleEdit}
-          onDelete={openDeleteDialog}
-          apiUrl={apiUrl}
-          pagination={pagination}
-          onPageChange={handlePageChange}
-        />
+        <>
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <Input
+                    placeholder="جستجو در عنوان مطالب..."
+                    value={searchTerm}
+                    onChange={handleSearch}
+                  />
+                </div>
+                <div className="w-full md:w-64">
+                  <Select
+                    value={selectedCategory}
+                    onValueChange={handleCategoryChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="انتخاب دسته‌بندی" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">همه دسته‌بندی‌ها</SelectItem>
+                      {categories.map((category) => (
+                        <SelectItem
+                          key={category.id}
+                          value={category.id.toString()}
+                        >
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleResetFilters}
+                  disabled={!searchTerm && !selectedCategory}
+                >
+                  پاک کردن فیلترها
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          <PostsList
+            posts={posts}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={openDeleteDialog}
+            apiUrl={apiUrl}
+            pagination={pagination}
+            onPageChange={handlePageChange}
+          />
+        </>
       )}
 
       <EditPostDialog
