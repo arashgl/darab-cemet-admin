@@ -1,3 +1,15 @@
+export interface Attachment {
+  id: string;
+  filename: string;
+  originalname: string;
+  path: string;
+  url: string;
+  mimetype: string;
+  size: number;
+  description?: string;
+  createdAt: string;
+}
+
 export interface Post {
   id: string;
   title: string;
@@ -7,6 +19,7 @@ export interface Post {
   tags?: string[];
   leadPicture?: string;
   categoryId?: number | null;
+  attachments?: Attachment[];
   createdAt: string;
   updatedAt: string;
 }
