@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -6,14 +6,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { AttachmentFile, FileUploader } from '@/components/ui/file-uploader';
 import { Input } from '@/components/ui/input';
-import { LexicalEditor } from './LexicalEditor';
-import { uploadApi } from '@/lib/api';
-import axios, { AxiosError } from 'axios';
+import { PostSection, sections, uploadApi } from '@/lib/api';
 import { ApiError } from '@/types/dashboard';
+import axios, { AxiosError } from 'axios';
 import { X } from 'lucide-react';
-import { sections, PostSection } from '@/lib/api';
+import { useEffect, useState } from 'react';
+import { LexicalEditor } from './LexicalEditor';
 
 interface Category {
   id: number;
@@ -40,6 +40,7 @@ export function CreatePostForm({
   const [tagInput, setTagInput] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [attachments, setAttachments] = useState<AttachmentFile[]>([]);
   const [newPost, setNewPost] = useState({
     title: '',
     description: '',
@@ -159,6 +160,17 @@ export function CreatePostForm({
         formData.append('leadPicture', leadPictureFile, leadPictureFile.name);
       }
 
+      // Add attachments to the form data
+      attachments.forEach((attachment, index) => {
+        formData.append('attachments', attachment.file, attachment.file.name);
+        if (attachment.description) {
+          formData.append(
+            `attachmentDescriptions[${index}]`,
+            attachment.description
+          );
+        }
+      });
+
       const response = await uploadApi.post('/posts', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -179,15 +191,15 @@ export function CreatePostForm({
       setTagInput('');
       setLeadPictureFile(null);
       setPreviewImage(null);
+      setAttachments([]);
     } catch (error) {
-      console.error('Error creating post:', error);
       let errorMessage = 'ایجاد پست با مشکل مواجه شد. لطفا دوباره تلاش کنید.';
 
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError<ApiError>;
-        console.error('API error:', axiosError.response?.data);
         if (axiosError.response?.data?.message) {
-          errorMessage = axiosError.response.data.message;
+          const message = axiosError.response.data.message;
+          errorMessage = Array.isArray(message) ? message[0] : message;
         }
       }
 
@@ -346,6 +358,17 @@ export function CreatePostForm({
               apiUrl={apiUrl}
               onError={onError}
               onSuccess={onSuccess}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">پیوست‌ها (اختیاری)</label>
+            <FileUploader
+              attachments={attachments}
+              onAttachmentsChange={setAttachments}
+              maxFiles={5}
+              maxFileSize={10}
+              showDescriptions={true}
             />
           </div>
 

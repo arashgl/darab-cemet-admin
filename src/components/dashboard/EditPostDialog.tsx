@@ -1,18 +1,18 @@
-import { useState, useEffect } from "react";
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { LexicalEditor } from "./LexicalEditor";
-import { uploadApi } from "@/lib/api";
-import axios, { AxiosError } from "axios";
-import { ApiError, Post } from "@/types/dashboard";
-import { X } from "lucide-react";
-import { sections } from "@/lib/api";
+} from '@/components/ui/dialog';
+import { AttachmentFile } from '@/components/ui/file-uploader';
+import { Input } from '@/components/ui/input';
+import { sections, uploadApi } from '@/lib/api';
+import { ApiError, Post } from '@/types/dashboard';
+import axios, { AxiosError } from 'axios';
+import { X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { LexicalEditor } from './LexicalEditor';
 
 interface Category {
   id: number;
@@ -41,9 +41,10 @@ export function EditPostDialog({
   const [isEditing, setIsEditing] = useState(false);
   const [leadPictureFile, setLeadPictureFile] = useState<File | null>(null);
   const [currentPost, setCurrentPost] = useState<Post | null>(null);
-  const [tagInput, setTagInput] = useState("");
+  const [tagInput, setTagInput] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [attachments, setAttachments] = useState<AttachmentFile[]>([]);
 
   // Update local state when post changes
   useEffect(() => {
@@ -60,8 +61,8 @@ export function EditPostDialog({
         const response = await axios.get(`${apiUrl}/categories`);
         setCategories(response.data);
       } catch (error) {
-        console.error("Error fetching categories:", error);
-        onError("دریافت دسته‌بندی‌ها با مشکل مواجه شد.");
+        console.error('Error fetching categories:', error);
+        onError('دریافت دسته‌بندی‌ها با مشکل مواجه شد.');
       } finally {
         setIsLoading(false);
       }
@@ -87,7 +88,7 @@ export function EditPostDialog({
 
     const { name, value } = e.target;
 
-    if (name === "categoryId") {
+    if (name === 'categoryId') {
       setCurrentPost((prev) => {
         if (!prev) return null;
         return {
@@ -113,14 +114,14 @@ export function EditPostDialog({
   };
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && tagInput.trim() !== "" && currentPost) {
+    if (e.key === 'Enter' && tagInput.trim() !== '' && currentPost) {
       e.preventDefault();
       const newTags = [...(currentPost.tags || []), tagInput.trim()];
       setCurrentPost((prev) => {
         if (!prev) return null;
         return { ...prev, tags: newTags };
       });
-      setTagInput("");
+      setTagInput('');
     }
   };
 
@@ -143,47 +144,60 @@ export function EditPostDialog({
 
     try {
       const formData = new FormData();
-      formData.append("title", currentPost.title);
-      formData.append("description", currentPost.description);
-      formData.append("content", currentPost.content);
-      formData.append("section", currentPost.section);
+      formData.append('title', currentPost.title);
+      formData.append('description', currentPost.description);
+      formData.append('content', currentPost.content);
+      formData.append('section', currentPost.section);
 
       // Add categoryId if selected
       if (
         currentPost.categoryId !== null &&
         currentPost.categoryId !== undefined
       ) {
-        formData.append("categoryId", currentPost.categoryId.toString());
+        formData.append('categoryId', currentPost.categoryId.toString());
       }
 
       // Add tags to the form data
       if (currentPost.tags && currentPost.tags.length > 0) {
         // Add each tag as a separate entry with the same key name
         currentPost.tags.forEach((tag) => {
-          formData.append("tags[]", tag);
+          formData.append('tags[]', tag);
         });
       }
 
       if (leadPictureFile) {
-        formData.append("leadPicture", leadPictureFile);
+        formData.append('leadPicture', leadPictureFile);
       }
+
+      // Add attachments to the form data
+      attachments.forEach((attachment, index) => {
+        formData.append('attachments', attachment.file, attachment.file.name);
+        if (attachment.description) {
+          formData.append(
+            `attachmentDescriptions[${index}]`,
+            attachment.description
+          );
+        }
+      });
 
       await uploadApi.patch(`/posts/${currentPost.id}`, formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          'Content-Type': 'multipart/form-data',
         },
       });
 
-      onSuccess("پست با موفقیت ویرایش شد!");
+      onSuccess('پست با موفقیت ویرایش شد!');
       onOpenChange(false);
       setLeadPictureFile(null);
+      setAttachments([]);
     } catch (error) {
-      let errorMessage = "ویرایش پست با مشکل مواجه شد. لطفا دوباره تلاش کنید.";
+      let errorMessage = 'ویرایش پست با مشکل مواجه شد. لطفا دوباره تلاش کنید.';
 
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError<ApiError>;
         if (axiosError.response?.data?.message) {
-          errorMessage = axiosError.response.data.message;
+          const message = axiosError.response.data.message;
+          errorMessage = Array.isArray(message) ? message[0] : message;
         }
       }
 
@@ -250,7 +264,7 @@ export function EditPostDialog({
               value={
                 currentPost.categoryId === null ||
                 currentPost.categoryId === undefined
-                  ? ""
+                  ? ''
                   : currentPost.categoryId.toString()
               }
               onChange={handleChange}
@@ -359,7 +373,7 @@ export function EditPostDialog({
               لغو
             </Button>
             <Button type="submit" disabled={isEditing}>
-              {isEditing ? "در حال ویرایش..." : "ذخیره تغییرات"}
+              {isEditing ? 'در حال ویرایش...' : 'ذخیره تغییرات'}
             </Button>
           </div>
         </form>
