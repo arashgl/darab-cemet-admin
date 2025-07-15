@@ -1,19 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { LexicalEditor } from "./LexicalEditor";
-import { uploadApi } from "@/lib/api";
-import axios, { AxiosError } from "axios";
-import { ApiError } from "@/types/dashboard";
-import { X } from "lucide-react";
-import { sections, PostSection } from "@/lib/api";
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { LexicalEditor } from './LexicalEditor';
+import { uploadApi } from '@/lib/api';
+import axios, { AxiosError } from 'axios';
+import { ApiError } from '@/types/dashboard';
+import { X } from 'lucide-react';
+import { sections, PostSection } from '@/lib/api';
 
 interface Category {
   id: number;
@@ -37,13 +37,13 @@ export function CreatePostForm({
   const [leadPictureFile, setLeadPictureFile] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
+  const [tagInput, setTagInput] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [newPost, setNewPost] = useState({
-    title: "",
-    description: "",
-    content: "",
+    title: '',
+    description: '',
+    content: '',
     section: PostSection.NEWS,
     categoryId: null as number | null,
   });
@@ -56,8 +56,8 @@ export function CreatePostForm({
         const response = await axios.get(`${apiUrl}/categories`);
         setCategories(response.data);
       } catch (error) {
-        console.error("Error fetching categories:", error);
-        onError("دریافت دسته‌بندی‌ها با مشکل مواجه شد.");
+        console.error('Error fetching categories:', error);
+        onError('دریافت دسته‌بندی‌ها با مشکل مواجه شد.');
       } finally {
         setIsLoading(false);
       }
@@ -89,7 +89,7 @@ export function CreatePostForm({
   ) => {
     const { name, value } = e.target;
 
-    if (name === "categoryId") {
+    if (name === 'categoryId') {
       setNewPost((prev) => ({
         ...prev,
         [name]: value ? parseInt(value, 10) : null,
@@ -107,10 +107,10 @@ export function CreatePostForm({
   };
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && tagInput.trim() !== "") {
+    if (e.key === 'Enter' && tagInput.trim() !== '') {
       e.preventDefault();
       setTags([...tags, tagInput.trim()]);
-      setTagInput("");
+      setTagInput('');
     }
   };
 
@@ -126,7 +126,7 @@ export function CreatePostForm({
       !newPost.description ||
       !leadPictureFile
     ) {
-      onError("لطفا تمام فیلدها را پر کنید و یک تصویر انتخاب کنید");
+      onError('لطفا تمام فیلدها را پر کنید و یک تصویر انتخاب کنید');
       return;
     }
 
@@ -134,58 +134,58 @@ export function CreatePostForm({
 
     try {
       const formData = new FormData();
-      formData.append("title", newPost.title);
-      formData.append("description", newPost.description);
-      formData.append("content", newPost.content);
-      formData.append("section", newPost.section);
+      formData.append('title', newPost.title);
+      formData.append('description', newPost.description);
+      formData.append('content', newPost.content);
+      formData.append('section', newPost.section);
 
       // Add categoryId if selected
       if (newPost.categoryId !== null) {
-        formData.append("categoryId", newPost.categoryId.toString());
+        formData.append('categoryId', newPost.categoryId.toString());
       }
 
       // Add tags to the form data
       if (tags.length > 0) {
         // Add each tag as a separate entry with the same key name
         tags.forEach((tag) => {
-          formData.append("tags[]", tag);
+          formData.append('tags[]', tag);
         });
       } else {
         // Send an empty array for tags
-        formData.append("tags[]", "");
+        formData.append('tags[]', '');
       }
 
       if (leadPictureFile) {
-        formData.append("leadPicture", leadPictureFile, leadPictureFile.name);
+        formData.append('leadPicture', leadPictureFile, leadPictureFile.name);
       }
 
-      const response = await uploadApi.post("/posts", formData, {
+      const response = await uploadApi.post('/posts', formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          'Content-Type': 'multipart/form-data',
         },
       });
 
-      console.log("Server response:", response.data);
+      console.log('Server response:', response.data);
 
-      onSuccess("پست با موفقیت ایجاد شد!");
+      onSuccess('پست با موفقیت ایجاد شد!');
       setNewPost({
-        title: "",
-        description: "",
-        content: "",
+        title: '',
+        description: '',
+        content: '',
         section: PostSection.NEWS,
         categoryId: null,
       });
       setTags([]);
-      setTagInput("");
+      setTagInput('');
       setLeadPictureFile(null);
       setPreviewImage(null);
     } catch (error) {
-      console.error("Error creating post:", error);
-      let errorMessage = "ایجاد پست با مشکل مواجه شد. لطفا دوباره تلاش کنید.";
+      console.error('Error creating post:', error);
+      let errorMessage = 'ایجاد پست با مشکل مواجه شد. لطفا دوباره تلاش کنید.';
 
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError<ApiError>;
-        console.error("API error:", axiosError.response?.data);
+        console.error('API error:', axiosError.response?.data);
         if (axiosError.response?.data?.message) {
           errorMessage = axiosError.response.data.message;
         }
@@ -249,7 +249,7 @@ export function CreatePostForm({
               id="categoryId"
               name="categoryId"
               value={
-                newPost.categoryId === null ? "" : newPost.categoryId.toString()
+                newPost.categoryId === null ? '' : newPost.categoryId.toString()
               }
               onChange={handleChange}
               className="flex h-10 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-950 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300"
@@ -375,7 +375,7 @@ export function CreatePostForm({
                 در حال ایجاد...
               </>
             ) : (
-              "ایجاد پست"
+              'ایجاد پست'
             )}
           </Button>
         </form>
