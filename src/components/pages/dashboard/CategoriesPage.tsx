@@ -1,39 +1,33 @@
-import { useState, useEffect, useCallback } from 'react';
-import axios, { AxiosError } from 'axios';
-import { Button } from '../ui/button';
+import {
+  useCategories,
+  useCreateCategory,
+  useDeleteCategory,
+  useUpdateCategory,
+} from '@/api/categories';
+import { DeleteCategoryDialog } from '@/components/dashboard/DeleteCategoryDialog';
+import { CategoriesTable } from '@/components/organisms/CategoriesTable';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '../ui/card';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { showToast } from '@/lib/toast';
-import api from '@/lib/api';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '../ui/table';
-import { Pencil, Trash2 } from 'lucide-react';
-import { Category } from '@/types/dashboard';
-import { DeleteCategoryDialog } from './DeleteCategoryDialog';
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
-} from '../ui/select';
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { showToast } from '@/lib/toast';
+import { Category } from '@/types/dashboard';
+import { useState } from 'react';
 
-export function CategoryPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+export function CategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
@@ -46,24 +40,19 @@ export function CategoryPage() {
     parentId: '',
   });
 
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3100';
+  // React Query hooks
+  const {
+    data: categories = [],
+    isLoading: categoriesLoading,
+    error: categoriesError,
+    refetch: refetchCategories,
+  } = useCategories();
 
-  const fetchCategories = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get(`${apiUrl}/categories`);
-      setCategories(response.data || []);
-    } catch {
-      showToast.error('دریافت دسته‌بندی‌ها با مشکل مواجه شد');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [apiUrl]);
+  const createCategoryMutation = useCreateCategory();
+  const updateCategoryMutation = useUpdateCategory();
+  const deleteCategoryMutation = useDeleteCategory();
 
-  useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
-
+  // Event handlers
   const resetForm = () => {
     setFormData({ name: '', slug: '', description: '', parentId: '' });
     setEditingCategory(null);
@@ -78,6 +67,7 @@ export function CategoryPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     // Validate slug client-side
     if (!/^[a-zA-Z0-9_-]+$/.test(formData.slug)) {
       showToast.error(
@@ -85,6 +75,7 @@ export function CategoryPage() {
       );
       return;
     }
+
     try {
       const payload = {
         ...formData,
@@ -93,24 +84,27 @@ export function CategoryPage() {
             ? Number(formData.parentId)
             : undefined,
       };
+
       if (editingCategory) {
-        await api.patch(`${apiUrl}/categories/${editingCategory.id}`, payload);
+        await updateCategoryMutation.mutateAsync({
+          id: editingCategory.id,
+          ...payload,
+        });
         showToast.success('دسته‌بندی با موفقیت بروزرسانی شد');
       } else {
-        await api.post(`${apiUrl}/categories`, payload);
+        await createCategoryMutation.mutateAsync(payload);
         showToast.success('دسته‌بندی با موفقیت ایجاد شد');
       }
+
       resetForm();
-      fetchCategories();
     } catch (error) {
-      console.error('Error saving category:', error);
-      if (
-        error instanceof AxiosError &&
-        error.response?.data.statusCode === 409
-      ) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'خطا در ذخیره دسته‌بندی';
+
+      if (errorMessage.includes('409')) {
         showToast.error('این دسته‌بندی قبلا ایجاد شده است');
       } else {
-        showToast.error('ذخیره دسته‌بندی با مشکل مواجه شد');
+        showToast.error(errorMessage);
       }
     }
   };
@@ -119,9 +113,9 @@ export function CategoryPage() {
     setEditingCategory(category);
     setFormData({
       name: category.name,
-      slug: category.slug || '',
+      slug: category.slug,
       description: category.description || '',
-      parentId: category.parentId ? String(category.parentId) : '',
+      parentId: category.parentId?.toString() || '',
     });
   };
 
@@ -134,11 +128,11 @@ export function CategoryPage() {
     if (!categoryToDelete) return;
 
     try {
-      await api.delete(`${apiUrl}/categories/${categoryToDelete.id}`);
+      await deleteCategoryMutation.mutateAsync(categoryToDelete.id);
       showToast.success('دسته‌بندی با موفقیت حذف شد');
-      fetchCategories();
-    } catch (error) {
-      console.error('Error deleting category:', error);
+      setDeleteDialogOpen(false);
+      setCategoryToDelete(null);
+    } catch {
       showToast.error('حذف دسته‌بندی با مشکل مواجه شد');
     }
   };
@@ -249,54 +243,14 @@ export function CategoryPage() {
           <CardDescription>مدیریت دسته‌بندی‌های موجود</CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="text-center py-4">در حال بارگذاری...</div>
-          ) : categories.length === 0 ? (
-            <div className="text-center py-4">هیچ دسته‌بندی وجود ندارد</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-start">نام</TableHead>
-                  <TableHead className="text-start">اسلاگ</TableHead>
-                  <TableHead className="text-start">توضیحات</TableHead>
-                  <TableHead className="text-start">والد</TableHead>
-                  <TableHead className="text-start">عملیات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {categories.map((category) => {
-                  const parent = categories.find(
-                    (cat) => cat.id === category.parentId
-                  );
-                  return (
-                    <TableRow key={category.id}>
-                      <TableCell>{category.name}</TableCell>
-                      <TableCell>{category.slug}</TableCell>
-                      <TableCell>{category.description || '-'}</TableCell>
-                      <TableCell>{parent ? parent.name : '-'}</TableCell>
-                      <TableCell className="flex space-x-2 rtl:space-x-reverse">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(category)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openDeleteDialog(category)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          )}
+          <CategoriesTable
+            categories={categories}
+            isLoading={categoriesLoading}
+            error={categoriesError}
+            onEdit={handleEdit}
+            onDelete={openDeleteDialog}
+            onRetry={refetchCategories}
+          />
         </CardContent>
       </Card>
 

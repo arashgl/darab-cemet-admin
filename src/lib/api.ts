@@ -1,26 +1,27 @@
-import axios from "axios";
+import axios from 'axios';
 // Create an axios instance with default configuration
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000",
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
   headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${localStorage.getItem('token')}`,
   },
 });
 
 export enum PostSection {
-  OCCASIONS = "مناسبت ها",
-  ANNOUNCEMENTS = "اطلاعیه ها",
-  NEWS = "اخبار ها",
-  ACHIEVEMENTS = "افتخارات",
-  SLIDER = "اسلایدر",
+  OCCASIONS = 'مناسبت ها',
+  ANNOUNCEMENTS = 'اطلاعیه ها',
+  NEWS = 'اخبار ها',
+  ACHIEVEMENTS = 'افتخارات',
+  SLIDER = 'اسلایدر',
+  HR = 'منابع انسانی',
 }
 export const sections = [
-  { value: PostSection.OCCASIONS, label: "مناسبت ها" },
-  { value: PostSection.ANNOUNCEMENTS, label: "اطلاعیه ها" },
-  { value: PostSection.NEWS, label: "اخبار ها" },
-  { value: PostSection.ACHIEVEMENTS, label: "افتخارات" },
-  { value: PostSection.SLIDER, label: "اسلایدر" },
+  { value: PostSection.OCCASIONS, label: 'مناسبت ها' },
+  { value: PostSection.ANNOUNCEMENTS, label: 'اطلاعیه ها' },
+  { value: PostSection.NEWS, label: 'اخبار ها' },
+  { value: PostSection.ACHIEVEMENTS, label: 'افتخارات' },
+  { value: PostSection.SLIDER, label: 'اسلایدر' },
 ];
 // Variable to store interceptor IDs
 let apiInterceptorId: number | null = null;
@@ -37,7 +38,7 @@ export const setupApiInterceptors = (token: string) => {
   apiInterceptorId = api.interceptors.request.use(
     (config) => {
       // Always get the latest token (either from param or localStorage)
-      const currentToken = token || localStorage.getItem("token");
+      const currentToken = token || localStorage.getItem('token');
       if (currentToken) {
         config.headers.Authorization = `Bearer ${currentToken}`;
       }
@@ -51,10 +52,10 @@ export const setupApiInterceptors = (token: string) => {
 
 // Special instance for uploading files (with multipart/form-data)
 export const uploadApi = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000",
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
   headers: {
-    "Content-Type": "multipart/form-data",
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
+    'Content-Type': 'multipart/form-data',
+    Authorization: `Bearer ${localStorage.getItem('token')}`,
   },
 });
 
@@ -69,7 +70,7 @@ export const setupUploadApiInterceptors = (token: string) => {
   uploadApiInterceptorId = uploadApi.interceptors.request.use(
     (config) => {
       // Always get the latest token (either from param or localStorage)
-      const currentToken = token || localStorage.getItem("token");
+      const currentToken = token || localStorage.getItem('token');
       if (currentToken) {
         config.headers.Authorization = `Bearer ${currentToken}`;
       }

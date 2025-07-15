@@ -1,7 +1,7 @@
-import { FileText, Package, FolderTree } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
+import { FileText, FolderTree, Package, Users } from 'lucide-react';
 
-type PageType = "posts" | "products" | "categories";
+type PageType = 'posts' | 'products' | 'categories' | 'personnel';
 
 interface SidebarProps {
   currentPage: PageType;
@@ -11,19 +11,24 @@ interface SidebarProps {
 export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
   const menuItems = [
     {
-      id: "posts",
-      label: "پست‌ها",
+      id: 'posts',
+      label: 'پست‌ها',
       icon: <FileText className="h-5 w-5" />,
     },
     {
-      id: "products",
-      label: "محصولات",
+      id: 'products',
+      label: 'محصولات',
       icon: <Package className="h-5 w-5" />,
     },
     {
-      id: "categories",
-      label: "دسته‌بندی‌ها",
+      id: 'categories',
+      label: 'دسته‌بندی‌ها',
       icon: <FolderTree className="h-5 w-5" />,
+    },
+    {
+      id: 'personnel',
+      label: 'منابع انسانی',
+      icon: <Users className="h-5 w-5" />,
     },
   ];
 
@@ -36,7 +41,7 @@ export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
             <Button
               key={item.id}
               variant={
-                currentPage === (item.id as PageType) ? "default" : "ghost"
+                currentPage === (item.id as PageType) ? 'default' : 'ghost'
               }
               className="w-full justify-start gap-2 mb-1 text-sm md:text-base"
               onClick={() => setCurrentPage(item.id as PageType)}

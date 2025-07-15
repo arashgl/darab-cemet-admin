@@ -40,8 +40,8 @@ export interface ApiError {
 }
 
 export enum MediaType {
-  IMAGE = "image",
-  VIDEO = "video",
+  IMAGE = 'image',
+  VIDEO = 'video',
 }
 
 export interface Media {
@@ -59,4 +59,13 @@ export interface Media {
 export interface User {
   name?: string;
   email: string;
+}
+
+export interface Personnel {
+  id: string;
+  title: string;
+  personnelInfo: string;
+  personnelImage?: string;
+  createdAt: string;
+  updatedAt: string;
 }

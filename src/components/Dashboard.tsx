@@ -1,34 +1,35 @@
-import { useState, useEffect } from "react";
-import { EditPostDialog } from "./dashboard/EditPostDialog";
-import { showToast } from "@/lib/toast";
-import { Post, Category } from "@/types/dashboard";
-import { Sidebar } from "./dashboard/Sidebar";
-import { Topbar } from "./dashboard/Topbar";
-import { ProductsPage } from "./dashboard/ProductsPage";
-import axios from "axios";
-import { Button } from "./ui/button";
+import api from '@/lib/api';
+import { showToast } from '@/lib/toast';
+import { Category, Post } from '@/types/dashboard';
+import axios from 'axios';
+import { useCallback, useEffect, useState } from 'react';
+import { CategoryPage } from './dashboard/CategoryPage';
+import { CreatePostForm } from './dashboard/CreatePostForm';
+import { DeletePostDialog } from './dashboard/DeletePostDialog';
+import { EditPostDialog } from './dashboard/EditPostDialog';
+import { PersonnelPage } from './dashboard/PersonnelPage';
+import { PostsList } from './dashboard/PostsList';
+import { ProductsPage } from './dashboard/ProductsPage';
+import { Sidebar } from './dashboard/Sidebar';
+import { Topbar } from './dashboard/Topbar';
+import { Button } from './ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "./ui/card";
-import { CreatePostForm } from "./dashboard/CreatePostForm";
-import { PostsList } from "./dashboard/PostsList";
-import api from "@/lib/api";
-import { CategoryPage } from "./dashboard/CategoryPage";
-import { DeletePostDialog } from "./dashboard/DeletePostDialog";
-import { Input } from "./ui/input";
+} from './ui/card';
+import { Input } from './ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
+} from './ui/select';
 
-type PageType = "posts" | "products" | "categories";
+type PageType = 'posts' | 'products' | 'categories' | 'personnel';
 
 // Enhanced PostsPage that includes post creation and listing
 const PostsPage = () => {
@@ -45,62 +46,63 @@ const PostsPage = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [categories, setCategories] = useState<Category[]>([]);
 
-  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3100";
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3100';
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const response = await axios.get(`${apiUrl}/categories`);
       setCategories(response.data || []);
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-      showToast.error("دریافت دسته‌بندی‌ها با مشکل مواجه شد");
+    } catch {
+      showToast.error('دریافت دسته‌بندی‌ها با مشکل مواجه شد');
     }
-  };
+  }, [apiUrl]);
 
-  const fetchPosts = async (page = 1) => {
-    setIsLoading(true);
-    try {
-      let url = `${apiUrl}/posts?page=${page}&limit=10`;
+  const fetchPosts = useCallback(
+    async (page = 1) => {
+      setIsLoading(true);
+      try {
+        let url = `${apiUrl}/posts?page=${page}&limit=10`;
 
-      if (searchTerm) {
-        url += `&title=${encodeURIComponent(searchTerm)}`;
-      }
-
-      if (selectedCategory && selectedCategory !== "all") {
-        url += `&categoryId=${selectedCategory}`;
-      }
-
-      const response = await axios.get(url);
-      setPosts(response.data.data || []);
-      setPagination(
-        response.data.meta || {
-          currentPage: page,
-          itemsPerPage: 10,
-          totalItems: 0,
-          totalPages: 1,
+        if (searchTerm) {
+          url += `&title=${encodeURIComponent(searchTerm)}`;
         }
-      );
-    } catch (error) {
-      console.error("Error fetching posts:", error);
-      showToast.error("دریافت پست‌ها با مشکل مواجه شد");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
+        if (selectedCategory && selectedCategory !== 'all') {
+          url += `&categoryId=${selectedCategory}`;
+        }
+
+        const response = await axios.get(url);
+        setPosts(response.data.data || []);
+        setPagination(
+          response.data.meta || {
+            currentPage: page,
+            itemsPerPage: 10,
+            totalItems: 0,
+            totalPages: 1,
+          }
+        );
+      } catch {
+        showToast.error('دریافت پست‌ها با مشکل مواجه شد');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [apiUrl, searchTerm, selectedCategory]
+  );
 
   useEffect(() => {
     fetchPosts();
     fetchCategories();
-    setSelectedCategory("all");
-  }, []);
+    setSelectedCategory('all');
+  }, [fetchPosts, fetchCategories]);
 
   useEffect(() => {
     fetchPosts(1);
-  }, [searchTerm, selectedCategory]);
+  }, [fetchPosts]);
 
   const openDeleteDialog = (id: string) => {
     const post = posts.find((p) => p.id === id);
@@ -115,11 +117,10 @@ const PostsPage = () => {
 
     try {
       await api.delete(`${apiUrl}/posts/${postToDelete.id}`);
-      showToast.success("پست با موفقیت حذف شد!");
+      showToast.success('پست با موفقیت حذف شد!');
       fetchPosts(pagination.currentPage);
-    } catch (error) {
-      console.error("Error deleting post:", error);
-      showToast.error("حذف پست با مشکل مواجه شد");
+    } catch {
+      showToast.error('حذف پست با مشکل مواجه شد');
     }
   };
 
@@ -141,8 +142,8 @@ const PostsPage = () => {
   };
 
   const handleResetFilters = () => {
-    setSearchTerm("");
-    setSelectedCategory("all");
+    setSearchTerm('');
+    setSelectedCategory('all');
   };
 
   return (
@@ -153,7 +154,7 @@ const PostsPage = () => {
           className="w-full sm:w-auto"
           onClick={() => setShowCreateForm(!showCreateForm)}
         >
-          {showCreateForm ? "مشاهده پست‌ها" : "افزودن پست جدید"}
+          {showCreateForm ? 'مشاهده پست‌ها' : 'افزودن پست جدید'}
         </Button>
       </div>
 
@@ -256,17 +257,19 @@ const PostsPage = () => {
 };
 
 export function Dashboard() {
-  const [currentPage, setCurrentPage] = useState<PageType>("posts");
+  const [currentPage, setCurrentPage] = useState<PageType>('posts');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const renderPage = () => {
     switch (currentPage) {
-      case "posts":
+      case 'posts':
         return <PostsPage />;
-      case "products":
+      case 'products':
         return <ProductsPage />;
-      case "categories":
+      case 'categories':
         return <CategoryPage />;
+      case 'personnel':
+        return <PersonnelPage />;
       default:
         return <PostsPage />;
     }
@@ -276,7 +279,7 @@ export function Dashboard() {
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50">
       <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
       <div className="flex flex-col md:flex-row">
-        <div className={`md:block ${sidebarOpen ? "block" : "hidden"}`}>
+        <div className={`md:block ${sidebarOpen ? 'block' : 'hidden'}`}>
           <Sidebar
             currentPage={currentPage}
             setCurrentPage={(page) => {

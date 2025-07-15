@@ -1,8 +1,7 @@
-import { LoginForm } from "@/components/LoginForm";
-import { Dashboard } from "@/components/Dashboard";
-import { AuthProvider, useAuth } from "@/lib/auth";
-import { ToastProvider } from "@/lib/toast";
-import "./index.css";
+import { LoginForm } from '@/components/pages/auth/LoginForm';
+import { Dashboard } from '@/components/pages/dashboard/Dashboard';
+import { useAuth } from '@/hooks/useAuth';
+import './index.css';
 
 // Custom CSS for animations
 const customStyles = `
@@ -112,7 +111,7 @@ const customStyles = `
   }
 `;
 
-function AppContent() {
+function App() {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -130,15 +129,6 @@ function AppContent() {
         {isAuthenticated ? <Dashboard /> : <LoginForm />}
       </div>
     </>
-  );
-}
-
-function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-      <ToastProvider />
-    </AuthProvider>
   );
 }
 

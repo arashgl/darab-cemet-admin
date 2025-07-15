@@ -1,11 +1,4 @@
-import { useState, useEffect } from "react";
-import { Media, MediaType, PaginationMeta, ApiError } from "@/types/dashboard";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectOption } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Pagination } from "@/components/ui/pagination";
+import { PaginationControls } from '@/components/molecules/PaginationControls';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,21 +8,32 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Loader2, X, Upload, Image, Film } from "lucide-react";
-import api from "@/lib/api";
-import axios from "axios";
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import api from '@/lib/api';
+import { ApiError, Media, MediaType, PaginationMeta } from '@/types/dashboard';
+import axios from 'axios';
+import { Film, Image, Loader2, Upload, X } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface MediaLibraryProps {
   onSelect?: (media: Media) => void;
-  apiUrl: string;
-  onError: (error: string) => void;
-  onSuccess: (message: string) => void;
+  onError?: (error: string) => void;
+  onSuccess?: (message: string) => void;
 }
 
 export function MediaLibrary({
   onSelect,
-  apiUrl,
   onError,
   onSuccess,
 }: MediaLibraryProps) {
@@ -39,7 +43,7 @@ export function MediaLibrary({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [mediaType, setMediaType] = useState<string>("");
+  const [mediaType, setMediaType] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationMeta>({
     currentPage: 1,
@@ -48,17 +52,32 @@ export function MediaLibrary({
     totalPages: 1,
   });
 
-  const mediaTypeOptions: SelectOption[] = [
-    { value: "", label: "همه" },
-    { value: MediaType.IMAGE, label: "تصویر" },
-    { value: MediaType.VIDEO, label: "ویدیو" },
+  const mediaTypeOptions = [
+    { value: '', label: 'همه' },
+    { value: MediaType.IMAGE, label: 'تصویر' },
+    { value: MediaType.VIDEO, label: 'ویدیو' },
   ];
 
-  useEffect(() => {
-    fetchMedia();
-  }, [currentPage, mediaType]);
+  const handleApiError = useCallback(
+    (error: unknown, defaultMessage: string) => {
+      let errorMessage = defaultMessage;
 
-  const fetchMedia = async () => {
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as import('axios').AxiosError<ApiError>;
+        if (axiosError.response?.data?.message) {
+          errorMessage =
+            typeof axiosError.response.data.message === 'string'
+              ? axiosError.response.data.message
+              : axiosError.response.data.message[0];
+        }
+      }
+
+      onError?.(errorMessage);
+    },
+    [onError]
+  );
+
+  const fetchMedia = useCallback(async () => {
     setIsLoading(true);
     try {
       let url = `/media?page=${currentPage}&limit=20`;
@@ -67,7 +86,6 @@ export function MediaLibrary({
       }
 
       const response = await api.get(url);
-      console.log(response.data.data, "MMMM");
       setMediaItems(response.data.data || []);
       setPagination(
         response.data.meta || {
@@ -78,11 +96,15 @@ export function MediaLibrary({
         }
       );
     } catch (error) {
-      handleApiError(error, "دریافت رسانه‌ها با مشکل مواجه شد");
+      handleApiError(error, 'دریافت رسانه‌ها با مشکل مواجه شد');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, mediaType, handleApiError]);
+
+  useEffect(() => {
+    fetchMedia();
+  }, [fetchMedia]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -92,25 +114,25 @@ export function MediaLibrary({
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      onError("لطفا یک فایل انتخاب کنید");
+      onError?.('لطفا یک فایل انتخاب کنید');
       return;
     }
 
     const formData = new FormData();
-    formData.append("file", selectedFile);
+    formData.append('file', selectedFile);
 
     setUploadLoading(true);
     try {
-      await api.post("/media/upload", formData, {
+      await api.post('/media/upload', formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          'Content-Type': 'multipart/form-data',
         },
       });
-      onSuccess("فایل با موفقیت آپلود شد");
+      onSuccess?.('فایل با موفقیت آپلود شد');
       setSelectedFile(null);
       fetchMedia();
     } catch (error) {
-      handleApiError(error, "آپلود فایل با مشکل مواجه شد");
+      handleApiError(error, 'آپلود فایل با مشکل مواجه شد');
     } finally {
       setUploadLoading(false);
     }
@@ -126,10 +148,10 @@ export function MediaLibrary({
 
     try {
       await api.delete(`/media/${selectedMedia.id}`);
-      onSuccess("فایل با موفقیت حذف شد");
+      onSuccess?.('فایل با موفقیت حذف شد');
       fetchMedia();
     } catch (error) {
-      handleApiError(error, "حذف فایل با مشکل مواجه شد");
+      handleApiError(error, 'حذف فایل با مشکل مواجه شد');
     } finally {
       setIsDeleteDialogOpen(false);
       setSelectedMedia(null);
@@ -151,27 +173,11 @@ export function MediaLibrary({
     }
   };
 
-  const handleApiError = (error: unknown, defaultMessage: string) => {
-    let errorMessage = defaultMessage;
-
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as import("axios").AxiosError<ApiError>;
-      if (axiosError.response?.data?.message) {
-        errorMessage =
-          typeof axiosError.response.data.message === "string"
-            ? axiosError.response.data.message
-            : axiosError.response.data.message[0];
-      }
-    }
-
-    onError(errorMessage);
-  };
-
   const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return bytes + " B";
-    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
-    else if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + " MB";
-    else return (bytes / 1073741824).toFixed(1) + " GB";
+    if (bytes < 1024) return bytes + ' B';
+    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    else if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
+    else return (bytes / 1073741824).toFixed(1) + ' GB';
   };
 
   const getIconForType = (type: MediaType) => {
@@ -226,12 +232,18 @@ export function MediaLibrary({
           </h3>
           <div className="mt-4">
             <div className="w-64">
-              <Select
-                value={mediaType}
-                onValueChange={handleMediaTypeChange}
-                options={mediaTypeOptions}
-                placeholder="نوع فایل"
-              />
+              <Select value={mediaType} onValueChange={handleMediaTypeChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="نوع فایل" />
+                </SelectTrigger>
+                <SelectContent>
+                  {mediaTypeOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -257,7 +269,7 @@ export function MediaLibrary({
                   <Card
                     key={media.id}
                     className={`relative overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary ${
-                      onSelect ? "hover:opacity-90" : ""
+                      onSelect ? 'hover:opacity-90' : ''
                     }`}
                     onClick={() => handleMediaClick(media)}
                   >
@@ -269,8 +281,8 @@ export function MediaLibrary({
                             backgroundImage: `url(${
                               import.meta.env.VITE_API_URL + media.url
                             })`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
                           }}
                         />
                       ) : (
@@ -333,7 +345,7 @@ export function MediaLibrary({
                       <tr
                         key={media.id}
                         className={`border-b dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 ${
-                          onSelect ? "cursor-pointer" : ""
+                          onSelect ? 'cursor-pointer' : ''
                         }`}
                         onClick={() => handleMediaClick(media)}
                       >
@@ -348,7 +360,7 @@ export function MediaLibrary({
                         </td>
                         <td className="py-3 px-4">
                           {new Date(media.createdAt).toLocaleDateString(
-                            "fa-IR"
+                            'fa-IR'
                           )}
                         </td>
                         <td className="py-3 px-4 text-center">
@@ -374,7 +386,7 @@ export function MediaLibrary({
 
         {pagination.totalPages > 1 && (
           <div className="p-6 border-t border-neutral-200 dark:border-neutral-700">
-            <Pagination
+            <PaginationControls
               currentPage={pagination.currentPage}
               totalPages={pagination.totalPages}
               onPageChange={handlePageChange}
@@ -394,7 +406,7 @@ export function MediaLibrary({
             </AlertDialogTitle>
             <AlertDialogDescription>
               این عملیات غیرقابل بازگشت است. این فایل از کتابخانه رسانه حذف
-              خواهد شد. 
+              خواهد شد.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
