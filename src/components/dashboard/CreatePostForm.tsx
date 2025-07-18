@@ -161,14 +161,8 @@ export function CreatePostForm({
       }
 
       // Add attachments to the form data
-      attachments.forEach((attachment, index) => {
+      attachments.forEach((attachment) => {
         formData.append('attachments', attachment.file, attachment.file.name);
-        if (attachment.description) {
-          formData.append(
-            `attachmentDescriptions[${index}]`,
-            attachment.description
-          );
-        }
       });
 
       const response = await uploadApi.post('/posts', formData, {
@@ -368,7 +362,7 @@ export function CreatePostForm({
               onAttachmentsChange={setAttachments}
               maxFiles={5}
               maxFileSize={10}
-              showDescriptions={true}
+              showDescriptions={false}
             />
           </div>
 
