@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { AttachmentFile } from '@/components/ui/file-uploader';
+import { AttachmentFile, FileUploader } from '@/components/ui/file-uploader';
 import { Input } from '@/components/ui/input';
 import { sections, uploadApi } from '@/lib/api';
 import { ApiError, Post } from '@/types/dashboard';
@@ -46,14 +46,12 @@ export function EditPostDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [attachments, setAttachments] = useState<AttachmentFile[]>([]);
 
-  // Update local state when post changes
   useEffect(() => {
     if (post) {
       setCurrentPost(post);
     }
   }, [post]);
 
-  // Fetch categories when component mounts
   useEffect(() => {
     const fetchCategories = async () => {
       setIsLoading(true);
@@ -149,7 +147,6 @@ export function EditPostDialog({
       formData.append('content', currentPost.content);
       formData.append('section', currentPost.section);
 
-      // Add categoryId if selected
       if (
         currentPost.categoryId !== null &&
         currentPost.categoryId !== undefined
@@ -157,9 +154,7 @@ export function EditPostDialog({
         formData.append('categoryId', currentPost.categoryId.toString());
       }
 
-      // Add tags to the form data
       if (currentPost.tags && currentPost.tags.length > 0) {
-        // Add each tag as a separate entry with the same key name
         currentPost.tags.forEach((tag) => {
           formData.append('tags[]', tag);
         });
@@ -169,15 +164,8 @@ export function EditPostDialog({
         formData.append('leadPicture', leadPictureFile);
       }
 
-      // Add attachments to the form data
-      attachments.forEach((attachment, index) => {
+      attachments.forEach((attachment) => {
         formData.append('attachments', attachment.file, attachment.file.name);
-        if (attachment.description) {
-          formData.append(
-            `attachmentDescriptions[${index}]`,
-            attachment.description
-          );
-        }
       });
 
       await uploadApi.patch(`/posts/${currentPost.id}`, formData, {
@@ -361,6 +349,17 @@ export function EditPostDialog({
               apiUrl={apiUrl}
               onError={onError}
               onSuccess={onSuccess}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">پیوست‌ها (اختیاری)</label>
+            <FileUploader
+              attachments={attachments}
+              onAttachmentsChange={setAttachments}
+              maxFiles={5}
+              maxFileSize={10}
+              showDescriptions={false}
             />
           </div>
 

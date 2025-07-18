@@ -1,10 +1,8 @@
-import { Button } from '@/components/ui/button';
 import { uploadApi } from '@/lib/api';
 import { ApiError } from '@/types/dashboard';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import axios, { AxiosError } from 'axios';
-import { ImageIcon } from 'lucide-react';
 import { useRef } from 'react';
 
 interface CkEditorProps {
@@ -127,24 +125,6 @@ export function CkEditor({
               console.error('CKEditor Error', err);
               onError('خطا در ویرایشگر');
             }}
-          />
-        </div>
-        <div className="bg-white dark:bg-neutral-800 p-2 border-t border-neutral-200 dark:border-neutral-700 flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleImageButtonClick}
-          >
-            <ImageIcon className="h-4 w-4 mr-1" />
-            آپلود تصویر
-          </Button>
-          <input
-            type="file"
-            ref={imageInputRef}
-            onChange={handleImageUpload}
-            accept="image/*"
-            className="hidden"
           />
         </div>
       </div>
