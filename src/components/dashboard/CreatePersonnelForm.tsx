@@ -1,5 +1,5 @@
 import { useCreatePersonnel } from '@/api/personnel';
-import { LexicalEditor } from '@/components/dashboard/LexicalEditor';
+import { CkEditor } from '@/components/dashboard/CKEditor';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -145,7 +145,6 @@ export function CreatePersonnelForm({
               id="personnelInfo"
               name="personnelInfo"
               placeholder="اطلاعات تخصصی و شغلی نیرو"
-              value={newPersonnel.personnelInfo}
               onChange={handleChange}
               required
               rows={4}
@@ -178,9 +177,9 @@ export function CreatePersonnelForm({
 
           <div className="space-y-2">
             <label htmlFor="content" className="text-sm font-medium">
-              محتوا
+              اطلاعات تکمیلی
             </label>
-            <LexicalEditor
+            <CkEditor
               initialContent=""
               onChange={(html) => {
                 console.log('Lexical content:', html);

@@ -1,3 +1,4 @@
+import { CkEditor } from '@/components/dashboard/CKEditor';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -12,7 +13,6 @@ import { ApiError, Post } from '@/types/dashboard';
 import axios, { AxiosError } from 'axios';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { LexicalEditor } from './LexicalEditor';
 
 interface Category {
   id: number;
@@ -355,7 +355,7 @@ export function EditPostDialog({
             <label htmlFor="edit-content" className="text-sm font-medium">
               محتوا
             </label>
-            <LexicalEditor
+            <CkEditor
               initialContent={currentPost.content}
               onChange={handleContentChange}
               apiUrl={apiUrl}
