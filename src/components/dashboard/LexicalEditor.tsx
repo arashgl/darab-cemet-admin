@@ -1,28 +1,32 @@
-import { useRef, useEffect, useState } from "react";
-import { LexicalComposer } from "@lexical/react/LexicalComposer";
-import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
-import { ContentEditable } from "@lexical/react/LexicalContentEditable";
-import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
-import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { Button } from '@/components/ui/button';
+import { uploadApi } from '@/lib/api';
+import { ApiError, Media } from '@/types/dashboard';
+import { $generateHtmlFromNodes } from '@lexical/html';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+
 import {
-  $getRoot,
+  INSERT_UNORDERED_LIST_COMMAND,
+  ListItemNode,
+  ListNode,
+} from '@lexical/list';
+import { LexicalComposer } from '@lexical/react/LexicalComposer';
+import { ContentEditable } from '@lexical/react/LexicalContentEditable';
+import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
+import { ListPlugin } from '@lexical/react/LexicalListPlugin';
+import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
+import { $createHeadingNode, HeadingNode } from '@lexical/rich-text';
+import axios, { AxiosError } from 'axios';
+import {
   $createParagraphNode,
   $createTextNode,
-  EditorState,
-} from "lexical";
-import { Button } from "@/components/ui/button";
-import { uploadApi } from "@/lib/api";
-import axios, { AxiosError } from "axios";
-import { $getSelection, $isRangeSelection } from "lexical";
-import { $insertNodes } from "lexical";
-import { ApiError, Media } from "@/types/dashboard";
-import { ListItemNode, ListNode } from "@lexical/list";
-import { INSERT_UNORDERED_LIST_COMMAND } from "@lexical/list";
-import { HeadingNode, $createHeadingNode } from "@lexical/rich-text";
-import { ListPlugin } from "@lexical/react/LexicalListPlugin";
-import { MediaLibraryDialog } from "./MediaLibraryDialog";
-import { ImageIcon } from "lucide-react";
+  $getRoot,
+  $getSelection,
+  $insertNodes,
+  $isRangeSelection,
+} from 'lexical';
+import { ImageIcon } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { MediaLibraryDialog } from './MediaLibraryDialog';
 
 // Simple error boundary component
 function ErrorBoundary({ children }: { children: React.ReactNode }) {
@@ -54,14 +58,14 @@ function ImagePlugin({
 
       try {
         const formData = new FormData();
-        formData.append("images", file);
+        formData.append('images', file);
 
         const response = await uploadApi.post(
-          "/posts/upload-content-images",
+          '/posts/upload-content-images',
           formData,
           {
             headers: {
-              "Content-Type": "multipart/form-data",
+              'Content-Type': 'multipart/form-data',
             },
           }
         );
@@ -74,6 +78,7 @@ function ImagePlugin({
           // Insert image as HTML
           editor.update(() => {
             const selection = $getSelection();
+
             if ($isRangeSelection(selection)) {
               const paragraph = $createParagraphNode();
               const imgTag = `<img src="${fullImageUrl}" alt="Uploaded image" />`;
@@ -82,16 +87,16 @@ function ImagePlugin({
             }
           });
 
-          onSuccess("تصویر با موفقیت اضافه شد");
+          onSuccess('تصویر با موفقیت اضافه شد');
         }
       } catch (error) {
-        console.error("Error uploading image:", error);
+        console.error('Error uploading image:', error);
 
-        let errorMessage = "خطا در آپلود تصویر";
+        let errorMessage = 'خطا در آپلود تصویر';
         if (axios.isAxiosError(error)) {
           const axiosError = error as AxiosError<ApiError>;
           if (axiosError.response?.data?.message) {
-            if (typeof axiosError.response.data.message === "string") {
+            if (typeof axiosError.response.data.message === 'string') {
               errorMessage = axiosError.response.data.message;
             } else if (Array.isArray(axiosError.response.data.message)) {
               errorMessage = axiosError.response.data.message[0];
@@ -103,7 +108,7 @@ function ImagePlugin({
       }
 
       // Reset the input value so the same file can be selected again
-      e.target.value = "";
+      e.target.value = '';
     }
   };
 
@@ -149,10 +154,10 @@ function MediaLibraryPlugin({
         if ($isRangeSelection(selection)) {
           const paragraph = $createParagraphNode();
 
-          if (media.type === "image") {
+          if (media.type === 'image') {
             const imgTag = `<img src="${apiUrl}${media.url}" alt="${media.originalname}" />`;
             paragraph.append($createTextNode(imgTag));
-          } else if (media.type === "video") {
+          } else if (media.type === 'video') {
             const videoTag = `<video controls src="${apiUrl}${media.url}" title="${media.originalname}"></video>`;
             paragraph.append($createTextNode(videoTag));
           }
@@ -165,8 +170,8 @@ function MediaLibraryPlugin({
       // We don't need to show a success message as it creates navigation issues
       // onSuccess("رسانه با موفقیت اضافه شد");
     } catch (error) {
-      console.error("Error inserting media:", error);
-      onError("خطا در درج رسانه");
+      console.error('Error inserting media:', error);
+      onError('خطا در درج رسانه');
     }
   };
 
@@ -210,8 +215,8 @@ function ToolbarPlugin() {
       editorState.read(() => {
         const selection = $getSelection();
         if ($isRangeSelection(selection)) {
-          setIsBold(selection.hasFormat("bold"));
-          setIsItalic(selection.hasFormat("italic"));
+          setIsBold(selection.hasFormat('bold'));
+          setIsItalic(selection.hasFormat('italic'));
         }
       });
     });
@@ -221,7 +226,7 @@ function ToolbarPlugin() {
     editor.update(() => {
       const selection = $getSelection();
       if ($isRangeSelection(selection)) {
-        selection.toggleFormat("bold");
+        selection.toggleFormat('bold');
       }
     });
   };
@@ -230,7 +235,7 @@ function ToolbarPlugin() {
     editor.update(() => {
       const selection = $getSelection();
       if ($isRangeSelection(selection)) {
-        selection.toggleFormat("italic");
+        selection.toggleFormat('italic');
       }
     });
   };
@@ -244,7 +249,7 @@ function ToolbarPlugin() {
       const selection = $getSelection();
       if ($isRangeSelection(selection)) {
         // Create a heading node and replace the current selection
-        const headingNode = $createHeadingNode("h2");
+        const headingNode = $createHeadingNode('h2');
         selection.insertNodes([headingNode]);
       }
     });
@@ -257,7 +262,7 @@ function ToolbarPlugin() {
         variant="outline"
         size="sm"
         onClick={toggleBold}
-        className={isBold ? "bg-neutral-200 dark:bg-neutral-600" : ""}
+        className={isBold ? 'bg-neutral-200 dark:bg-neutral-600' : ''}
       >
         B
       </Button>
@@ -266,7 +271,7 @@ function ToolbarPlugin() {
         variant="outline"
         size="sm"
         onClick={toggleItalic}
-        className={isItalic ? "bg-neutral-200 dark:bg-neutral-600" : ""}
+        className={isItalic ? 'bg-neutral-200 dark:bg-neutral-600' : ''}
       >
         I
       </Button>
@@ -293,6 +298,25 @@ interface LexicalEditorProps {
   onSuccess: (message: string) => void;
 }
 
+function EditorOnChangePlugin({
+  onChange,
+}: {
+  onChange: (html: string) => void;
+}) {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    return editor.registerUpdateListener(({ editorState }) => {
+      editorState.read(() => {
+        const html = $generateHtmlFromNodes(editor, null);
+        onChange(html);
+      });
+    });
+  }, [editor, onChange]);
+
+  return null;
+}
+
 export function LexicalEditor({
   initialContent,
   onChange,
@@ -301,41 +325,55 @@ export function LexicalEditor({
   onSuccess,
 }: LexicalEditorProps) {
   const editorConfig = {
-    namespace: "MyEditor",
+    namespace: 'MyEditor',
     theme: {
-      paragraph: "mb-1",
-      rtl: "text-right",
-      ltr: "text-left",
+      paragraph: 'mb-1',
+      rtl: 'text-right',
+      ltr: 'text-left',
       text: {
-        bold: "font-bold",
-        italic: "italic",
-        underline: "underline",
-        strikethrough: "line-through",
+        bold: 'font-bold',
+        italic: 'italic',
+        underline: 'underline',
+        strikethrough: 'line-through',
       },
       list: {
-        ul: "list-disc list-inside",
-        ol: "list-decimal list-inside",
-        listitem: "mb-1",
+        ul: 'list-disc list-inside',
+        ol: 'list-decimal list-inside',
+        listitem: 'mb-1',
       },
       heading: {
-        h1: "text-2xl font-bold",
-        h2: "text-xl font-bold",
-        h3: "text-lg font-semibold",
+        h1: 'text-2xl font-bold',
+        h2: 'text-xl font-bold',
+        h3: 'text-lg font-semibold',
       },
     },
     nodes: [ListItemNode, ListNode, HeadingNode],
     onError: (error: Error) => {
-      console.error("Lexical Editor Error:", error);
+      console.error('Lexical Editor Error:', error);
     },
   };
 
-  const handleEditorChange = (editorState: EditorState) => {
-    editorState.read(() => {
-      const root = $getRoot();
-      const html = root.getTextContent();
-      onChange(html);
-    });
-  };
+  // const handleEditorChange = (editorState: EditorState) => {
+  //   editorState.read(() => {
+  //     try {
+  //       const html = $generateHtmlFromNodes(editorState, null); // ✅ مستقیم با editorState
+  //       onChange(html);
+  //     } catch (e) {
+  //       console.error('HTML generation failed', e);
+  //       onChange($getRoot().getTextContent());
+  //     }
+  //   });
+  // };
+
+  // const handleEditorChange = (editorState: EditorState) => {
+  //   editorState.read(() => {
+  //     const root = $getRoot();
+  //     // const html = root.getTextContent();
+  //     const html = $generateHtmlFromNodes(editor, null);
+
+  //     onChange(html);
+  //   });
+  // };
 
   return (
     <div className="space-y-2">
@@ -352,7 +390,8 @@ export function LexicalEditor({
             />
             <HistoryPlugin />
             <ListPlugin />
-            <OnChangePlugin onChange={handleEditorChange} />
+            <EditorOnChangePlugin onChange={onChange} />{' '}
+            {/* <OnChangePlugin onChange={handleEditorChange} /> */}
             <InitialStatePlugin initialContent={initialContent} />
           </div>
           <div className="bg-white dark:bg-neutral-800 p-2 border-t border-neutral-200 dark:border-neutral-700 flex gap-2">
