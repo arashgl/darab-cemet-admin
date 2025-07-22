@@ -19,7 +19,7 @@ export interface Post {
   tags?: string[];
   leadPicture?: string;
   categoryId?: number | null;
-  attachments?: Attachment[];
+  attachments?: Attachment[] | string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -81,4 +81,24 @@ export interface Personnel {
   personnelImage?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface MediaItem {
+  id: string;
+  type: 'gallery' | 'iframe' | 'url';
+  title: string;
+  description?: string;
+  coverImage: string; // Thumbnail or preview
+  url: string; // The actual link or source
+  createdAt?: string;
+  tags?: string[];
+}
+
+export interface MediaResponse {
+  data: MediaItem[];
+  meta: {
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+  };
 }

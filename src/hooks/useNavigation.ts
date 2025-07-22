@@ -1,7 +1,7 @@
 import { currentPageState, sidebarOpenState } from '@/state/atoms';
 import { useRecoilState } from 'recoil';
 
-type PageType = 'posts' | 'products' | 'categories' | 'personnel';
+type PageType = 'posts' | 'products' | 'categories' | 'personnel' | 'media';
 
 export function useNavigation() {
   const [sidebarOpen, setSidebarOpen] = useRecoilState(sidebarOpenState);
