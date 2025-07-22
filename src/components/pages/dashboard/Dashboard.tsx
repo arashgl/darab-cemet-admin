@@ -4,6 +4,7 @@ import { Topbar } from '@/components/dashboard/Topbar';
 import { currentPageState, sidebarOpenState } from '@/state/atoms';
 import { useRecoilState } from 'recoil';
 import { CategoriesPage } from './CategoriesPage';
+import { MediaPage } from './MediaPage';
 import { PostsPage } from './PostsPage';
 import { ProductsPage } from './ProductsPage';
 
@@ -21,13 +22,15 @@ export function Dashboard() {
         return <CategoriesPage />;
       case 'personnel':
         return <PersonnelPage />;
+      case 'media':
+        return <MediaPage />;
       default:
         return <PostsPage />;
     }
   };
 
   const handlePageChange = (
-    page: 'posts' | 'products' | 'categories' | 'personnel'
+    page: 'posts' | 'products' | 'categories' | 'personnel' | 'media'
   ) => {
     setCurrentPage(page);
     // Close sidebar on mobile after navigation
