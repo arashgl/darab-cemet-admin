@@ -253,7 +253,14 @@ export function MediaPage() {
                         <div className="w-16 h-16 rounded-md overflow-hidden bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
                           {item.coverImage ? (
                             <img
-                              src={`${apiUrl}${item.coverImage}`}
+                              onError={() => {
+                                item.coverImage = `${apiUrl}/default-image.png`;
+                              }}
+                              src={
+                                item.coverImage.startsWith('http')
+                                  ? item.coverImage
+                                  : `${apiUrl}${item.coverImage}`
+                              }
                               alt={item.title}
                               className="w-full h-full object-cover"
                             />
