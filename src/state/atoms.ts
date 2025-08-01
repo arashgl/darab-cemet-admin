@@ -53,7 +53,7 @@ export const sidebarOpenState = atom<boolean>({
 });
 
 export const currentPageState = atom<
-  'posts' | 'products' | 'categories' | 'personnel' | 'media'
+  'posts' | 'products' | 'categories' | 'personnel' | 'media' | 'tickets'
 >({
   key: 'currentPageState',
   default: 'posts',

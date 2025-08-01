@@ -1,7 +1,20 @@
 import { Button } from '@/components/ui/button';
-import { FileText, FolderTree, Image, Package, Users } from 'lucide-react';
+import {
+  FileText,
+  FolderTree,
+  Image,
+  MessageSquare,
+  Package,
+  Users,
+} from 'lucide-react';
 
-type PageType = 'posts' | 'products' | 'categories' | 'personnel' | 'media';
+type PageType =
+  | 'posts'
+  | 'products'
+  | 'categories'
+  | 'personnel'
+  | 'media'
+  | 'tickets';
 
 interface SidebarProps {
   currentPage: PageType;
@@ -34,6 +47,11 @@ export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
       id: 'media',
       label: 'رسانه‌ها',
       icon: <Image className="h-5 w-5" />,
+    },
+    {
+      id: 'tickets',
+      label: 'تیکت‌ها',
+      icon: <MessageSquare className="h-5 w-5" />,
     },
   ];
 

@@ -7,6 +7,7 @@ import { CategoriesPage } from './CategoriesPage';
 import { MediaPage } from './MediaPage';
 import { PostsPage } from './PostsPage';
 import { ProductsPage } from './ProductsPage';
+import { TicketsRouter } from './TicketsRouter';
 
 export function Dashboard() {
   const [currentPage, setCurrentPage] = useRecoilState(currentPageState);
@@ -24,13 +25,21 @@ export function Dashboard() {
         return <PersonnelPage />;
       case 'media':
         return <MediaPage />;
+      case 'tickets':
+        return <TicketsRouter />;
       default:
         return <PostsPage />;
     }
   };
 
   const handlePageChange = (
-    page: 'posts' | 'products' | 'categories' | 'personnel' | 'media'
+    page:
+      | 'posts'
+      | 'products'
+      | 'categories'
+      | 'personnel'
+      | 'media'
+      | 'tickets'
   ) => {
     setCurrentPage(page);
     // Close sidebar on mobile after navigation
