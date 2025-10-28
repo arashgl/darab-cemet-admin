@@ -94,7 +94,7 @@ export function CkEditor({
             data={initialContent}
             config={{
               licenseKey:
-                'eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE3NTQwOTI3OTksImp0aSI6ImE3MGE1NjA5LTJlOWItNGRhZC05ZjkzLTQzMDc3MGMwYzk4NyIsInVzYWdlRW5kcG9pbnQiOiJodHRwczovL3Byb3h5LWV2ZW50LmNrZWRpdG9yLmNvbSIsImRpc3RyaWJ1dGlvbkNoYW5uZWwiOlsiY2xvdWQiLCJkcnVwYWwiLCJzaCJdLCJ3aGl0ZUxhYmVsIjp0cnVlLCJsaWNlbnNlVHlwZSI6InRyaWFsIiwiZmVhdHVyZXMiOlsiKiJdLCJ2YyI6ImNhNzZkOWRmIn0.PdIUzdkviFOUsY74xE_ack-Mi_u8WwAIjBwfwwlMiEI4dbs7Ltui-AkBouZed-MMxoUmR1VRkAi_-7a6rXV6Vg',
+                'eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE3NjI5MDU1OTksImp0aSI6IjFmNDA1OWY5LTYwN2YtNGJkZS05Njc3LTg2MWE4MmE5YWIyOSIsInVzYWdlRW5kcG9pbnQiOiJodHRwczovL3Byb3h5LWV2ZW50LmNrZWRpdG9yLmNvbSIsImRpc3RyaWJ1dGlvbkNoYW5uZWwiOlsiY2xvdWQiLCJkcnVwYWwiLCJzaCJdLCJ3aGl0ZUxhYmVsIjp0cnVlLCJsaWNlbnNlVHlwZSI6InRyaWFsIiwiZmVhdHVyZXMiOlsiKiJdLCJ2YyI6ImNkNmI5NTJjIn0.8qGYqwnqbvkF7D6MijUvfYeGTQNBuwHttYkB-6T9FyuhAlWNOroCiy0u8dITVbAquHq3MMXOif3eBtnfWZRVcw',
               toolbar: [
                 'heading',
                 '|',
