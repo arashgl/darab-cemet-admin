@@ -4,8 +4,13 @@ import { atom, selector } from 'recoil';
 // Auth state
 export const authTokenState = atom<string | null>({
   key: 'authTokenState',
-  default: localStorage.getItem('token'),
+  default: null,
   effects: [
+    ({ setSelf, trigger }) => {
+      if (trigger === 'get') {
+        setSelf(localStorage.getItem('token'));
+      }
+    },
     ({ onSet }) => {
       onSet((newValue) => {
         if (newValue) {
@@ -20,11 +25,14 @@ export const authTokenState = atom<string | null>({
 
 export const authUserState = atom<User | null>({
   key: 'authUserState',
-  default: (() => {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
-  })(),
+  default: null,
   effects: [
+    ({ setSelf, trigger }) => {
+      if (trigger === 'get') {
+        const userStr = localStorage.getItem('user');
+        setSelf(userStr ? JSON.parse(userStr) : null);
+      }
+    },
     ({ onSet }) => {
       onSet((newValue) => {
         if (newValue) {
@@ -53,7 +61,7 @@ export const sidebarOpenState = atom<boolean>({
 });
 
 export const currentPageState = atom<
-  'posts' | 'products' | 'categories' | 'personnel' | 'media' | 'tickets'
+  'posts' | 'products' | 'categories' | 'personnel' | 'media' | 'tickets' | 'landing-settings'
 >({
   key: 'currentPageState',
   default: 'posts',

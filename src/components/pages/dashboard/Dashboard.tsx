@@ -8,6 +8,7 @@ import { MediaPage } from './MediaPage';
 import { PostsPage } from './PostsPage';
 import { ProductsPage } from './ProductsPage';
 import { TicketsRouter } from './TicketsRouter';
+import { LandingSettingsPage } from './LandingSettingsPage';
 
 export function Dashboard() {
   const [currentPage, setCurrentPage] = useRecoilState(currentPageState);
@@ -27,6 +28,8 @@ export function Dashboard() {
         return <MediaPage />;
       case 'tickets':
         return <TicketsRouter />;
+      case 'landing-settings':
+        return <LandingSettingsPage />;
       default:
         return <PostsPage />;
     }
@@ -40,6 +43,7 @@ export function Dashboard() {
       | 'personnel'
       | 'media'
       | 'tickets'
+      | 'landing-settings'
   ) => {
     setCurrentPage(page);
     // Close sidebar on mobile after navigation

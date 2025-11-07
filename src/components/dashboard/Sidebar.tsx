@@ -5,6 +5,7 @@ import {
   Image,
   MessageSquare,
   Package,
+  Settings,
   Users,
 } from 'lucide-react';
 
@@ -14,7 +15,8 @@ type PageType =
   | 'categories'
   | 'personnel'
   | 'media'
-  | 'tickets';
+  | 'tickets'
+  | 'landing-settings';
 
 interface SidebarProps {
   currentPage: PageType;
@@ -52,6 +54,11 @@ export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
       id: 'tickets',
       label: 'تیکت‌ها',
       icon: <MessageSquare className="h-5 w-5" />,
+    },
+    {
+      id: 'landing-settings',
+      label: 'تنظیمات لندینگ',
+      icon: <Settings className="h-5 w-5" />,
     },
   ];
 
