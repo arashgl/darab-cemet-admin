@@ -11,7 +11,7 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
 // API configuration
-const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const apiUrl = import.meta.env.VITE_API_URL;
 
 // Auth headers helper
 const getAuthHeaders = () => {

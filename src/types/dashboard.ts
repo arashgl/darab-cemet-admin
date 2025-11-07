@@ -152,3 +152,27 @@ export interface TicketStats {
   closed: number;
   total: number;
 }
+
+export interface LandingSetting {
+  id: string;
+  key: string;
+  title: string;
+  description: string;
+  image: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateLandingSettingInput {
+  key: string;
+  title: string;
+  description: string;
+  image: string;
+}
+
+export interface UpdateLandingSettingInput {
+  key?: string;
+  title?: string;
+  description?: string;
+  image?: string;
+}

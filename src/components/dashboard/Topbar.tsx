@@ -1,6 +1,6 @@
 import { LogOut, User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/hooks/useAuth";
 
 interface TopbarProps {
   onMenuClick: () => void;

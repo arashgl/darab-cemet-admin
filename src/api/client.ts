@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+console.log('API_BASE_URL', API_BASE_URL);
 // Create base axios instance
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -38,10 +39,8 @@ const addResponseInterceptor = (client: typeof apiClient) => {
     (response) => response,
     (error) => {
       if (error.response?.status === 401) {
-        // Clear auth state on 401
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.reload();
       }
       return Promise.reject(error);
     }

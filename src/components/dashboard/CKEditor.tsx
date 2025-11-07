@@ -4,7 +4,6 @@ import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import axios, { AxiosError } from 'axios';
 import { useRef } from 'react';
-
 interface CkEditorProps {
   initialContent: string;
   onChange: (html: string) => void;
@@ -21,7 +20,7 @@ export function CkEditor({
   onSuccess,
 }: CkEditorProps) {
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const editorRef = useRef<any>(null); // CKEditor instance
+  const editorRef = useRef<unknown>(null);
 
   const handleImageButtonClick = () => {
     if (imageInputRef.current) {
@@ -51,13 +50,22 @@ export function CkEditor({
 
         if (imageUrl && editorRef.current) {
           const fullImageUrl = `${apiUrl}/${imageUrl}`;
-          editorRef.current.model.change((writer: any) => {
+          const editor = editorRef.current as {
+            model: {
+              change: (callback: (writer: {
+                createElement: (name: string, attrs: Record<string, string>) => unknown;
+              }) => void) => void;
+              insertContent: (element: unknown, selection: unknown) => void;
+              document: { selection: unknown };
+            };
+          };
+          editor.model.change((writer) => {
             const imageElement = writer.createElement('image', {
               src: fullImageUrl,
             });
-            editorRef.current.model.insertContent(
+            editor.model.insertContent(
               imageElement,
-              editorRef.current.model.document.selection
+              editor.model.document.selection
             );
           });
 
@@ -87,14 +95,32 @@ export function CkEditor({
 
   return (
     <div className="space-y-2">
+      <div className="flex items-center gap-2 mb-2">
+        <button
+          type="button"
+          onClick={handleImageButtonClick}
+          className="px-3 py-1.5 rounded-md border border-neutral-300 dark:border-neutral-700
+                     bg-neutral-50 dark:bg-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800
+                     text-sm"
+        >
+          انتخاب و آپلود تصویر
+        </button>
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageUpload}
+        />
+      </div>
       <div className="border border-neutral-200 dark:border-neutral-700 rounded-md">
         <div className="p-4 min-h-[200px] bg-white dark:bg-neutral-950">
           <CKEditor
             editor={ClassicEditor}
             data={initialContent}
             config={{
-              licenseKey:
-                'eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE3NjI5MDU1OTksImp0aSI6IjFmNDA1OWY5LTYwN2YtNGJkZS05Njc3LTg2MWE4MmE5YWIyOSIsInVzYWdlRW5kcG9pbnQiOiJodHRwczovL3Byb3h5LWV2ZW50LmNrZWRpdG9yLmNvbSIsImRpc3RyaWJ1dGlvbkNoYW5uZWwiOlsiY2xvdWQiLCJkcnVwYWwiLCJzaCJdLCJ3aGl0ZUxhYmVsIjp0cnVlLCJsaWNlbnNlVHlwZSI6InRyaWFsIiwiZmVhdHVyZXMiOlsiKiJdLCJ2YyI6ImNkNmI5NTJjIn0.8qGYqwnqbvkF7D6MijUvfYeGTQNBuwHttYkB-6T9FyuhAlWNOroCiy0u8dITVbAquHq3MMXOif3eBtnfWZRVcw',
+              licenseKey: import.meta.env.VITE_CKEDITOR_API_KEY,
+              removePlugins: ['ImageUpload', 'EasyImage'],
               toolbar: [
                 'heading',
                 '|',
@@ -103,13 +129,20 @@ export function CkEditor({
                 'bulletedList',
                 'numberedList',
                 'link',
+                '|',
+                'imageInsert',
                 'undo',
                 'redo',
               ],
               image: {
                 toolbar: [
                   'imageTextAlternative',
-                  'imageStyle:full',
+                  '|',
+                  'imageStyle:inline',
+                  'imageStyle:alignLeft',
+                  'imageStyle:alignCenter',
+                  'imageStyle:alignRight',
+                  'imageStyle:block',
                   'imageStyle:side',
                 ],
               },

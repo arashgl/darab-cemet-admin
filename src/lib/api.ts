@@ -1,7 +1,7 @@
 import axios from 'axios';
 // Create an axios instance with default configuration
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+  baseURL: import.meta.env.VITE_API_URL,
   headers: {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -52,7 +52,7 @@ export const setupApiInterceptors = (token: string) => {
 
 // Special instance for uploading files (with multipart/form-data)
 export const uploadApi = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+  baseURL: import.meta.env.VITE_API_URL,
   headers: {
     'Content-Type': 'multipart/form-data',
     Authorization: `Bearer ${localStorage.getItem('token')}`,
