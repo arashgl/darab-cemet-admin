@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -9,14 +10,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { PaginationMeta, Personnel } from '@/types/dashboard';
+import { PaginationMeta, Personnel, PersonnelType } from '@/types/dashboard';
 
 interface PersonnelListProps {
   personnel: Personnel[];
   isLoading: boolean;
   onEdit: (personnel: Personnel) => void;
   onDelete: (id: string) => void;
-  apiUrl: string;
   pagination: PaginationMeta;
   onPageChange: (page: number) => void;
 }
@@ -26,14 +26,14 @@ export function PersonnelList({
   isLoading,
   onEdit,
   onDelete,
-  apiUrl,
   pagination,
   onPageChange,
 }: PersonnelListProps) {
-  const { currentPage, totalPages } = pagination;
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3100';
 
   // Generate page numbers array for pagination
   const getPageNumbers = () => {
+    const { currentPage, totalPages } = pagination;
     const pageNumbers = [];
     const maxPagesToShow = 5;
 
@@ -81,10 +81,36 @@ export function PersonnelList({
     return pageNumbers;
   };
 
+  const getPersonnelTypeLabel = (type: PersonnelType) => {
+    switch (type) {
+      case PersonnelType.MANAGER:
+        return 'مدیرعامل';
+      case PersonnelType.ASSISTANT:
+        return 'معاونت';
+      case PersonnelType.MANAGERS:
+        return 'مدیریت';
+      default:
+        return type;
+    }
+  };
+
+  const getPersonnelTypeBadgeVariant = (type: PersonnelType) => {
+    switch (type) {
+      case PersonnelType.MANAGER:
+        return 'default';
+      case PersonnelType.ASSISTANT:
+        return 'secondary';
+      case PersonnelType.MANAGERS:
+        return 'outline';
+      default:
+        return 'default';
+    }
+  };
+
   return (
     <>
       <h2 className="text-2xl font-bold mb-6 text-neutral-900 dark:text-neutral-50">
-        نیروهای انسانی موجود
+        نیروهای انسانی موجود ({pagination.totalItems} نفر)
       </h2>
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
@@ -98,27 +124,79 @@ export function PersonnelList({
                 key={person.id}
                 className="overflow-hidden transition-all duration-300 hover:shadow-lg border-neutral-300 dark:border-neutral-700"
               >
-                <div className="grid grid-cols-1 md:grid-cols-4">
-                  {person.personnelImage && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  {person.image && (
                     <div className="col-span-1">
                       <img
-                        src={`${apiUrl}/${person.personnelImage}`}
-                        alt={person.title}
-                        className="w-full h-full object-cover aspect-square"
+                        src={
+                          person.image.startsWith('http')
+                            ? person.image
+                            : `${apiUrl}${person.image}`
+                        }
+                        alt={person.name}
+                        className="w-full h-full object-cover aspect-square rounded-lg"
                       />
                     </div>
                   )}
                   <CardContent
                     className={`p-6 ${
-                      person.personnelImage ? 'col-span-3' : 'col-span-4'
+                      person.image ? 'col-span-3' : 'col-span-4'
                     }`}
                   >
-                    <h3 className="text-xl font-semibold mb-2 text-neutral-900 dark:text-neutral-50">
-                      {person.title}
-                    </h3>
-                    <p className="text-neutral-600 dark:text-neutral-300 mb-4 line-clamp-3">
-                      {person.personnelInfo}
-                    </p>
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="text-xl font-semibold text-neutral-900 dark:text-neutral-50">
+                        {person.name}
+                      </h3>
+                      <Badge
+                        variant={getPersonnelTypeBadgeVariant(person.type)}
+                      >
+                        {getPersonnelTypeLabel(person.type)}
+                      </Badge>
+                    </div>
+
+                    <div className="space-y-2 mb-4">
+                      <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                        <span className="font-medium">سمت:</span>{' '}
+                        {person.position}
+                      </p>
+                      {person.workplace && (
+                        <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                          <span className="font-medium">محل کار:</span>{' '}
+                          {person.workplace}
+                        </p>
+                      )}
+                      {person.education && (
+                        <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                          <span className="font-medium">تحصیلات:</span>{' '}
+                          {person.education}
+                        </p>
+                      )}
+                      {person.experience && (
+                        <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                          <span className="font-medium">تجربه:</span>{' '}
+                          {person.experience}
+                        </p>
+                      )}
+                      {person.phone && (
+                        <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                          <span className="font-medium">تلفن:</span>{' '}
+                          {person.phone}
+                        </p>
+                      )}
+                      {person.email && (
+                        <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                          <span className="font-medium">ایمیل:</span>{' '}
+                          {person.email}
+                        </p>
+                      )}
+                      {person.additionalInfo && (
+                        <p className="text-sm text-neutral-600 dark:text-neutral-300 line-clamp-2">
+                          <span className="font-medium">اطلاعات اضافی:</span>{' '}
+                          {person.additionalInfo}
+                        </p>
+                      )}
+                    </div>
+
                     <div className="flex justify-between items-center">
                       <span className="text-xs text-neutral-500 dark:text-neutral-400">
                         {new Date(person.createdAt).toLocaleDateString('fa-IR')}
@@ -146,17 +224,19 @@ export function PersonnelList({
             ))}
           </div>
 
-          {totalPages > 1 && (
+          {/* Pagination */}
+          {pagination.totalPages > 1 && (
             <Pagination dir="rtl" className="mt-6">
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious
                     onClick={() =>
-                      currentPage > 1 && onPageChange(currentPage - 1)
+                      pagination.currentPage > 1 &&
+                      onPageChange(pagination.currentPage - 1)
                     }
                     size="sm"
                     className={
-                      currentPage === 1
+                      pagination.currentPage === 1
                         ? 'opacity-50 cursor-not-allowed'
                         : 'cursor-pointer'
                     }
@@ -167,7 +247,7 @@ export function PersonnelList({
                   typeof page === 'number' ? (
                     <PaginationItem key={index}>
                       <PaginationLink
-                        isActive={page === currentPage}
+                        isActive={page === pagination.currentPage}
                         onClick={() => onPageChange(page)}
                         size="sm"
                         className="cursor-pointer"
@@ -185,11 +265,12 @@ export function PersonnelList({
                 <PaginationItem>
                   <PaginationNext
                     onClick={() =>
-                      currentPage < totalPages && onPageChange(currentPage + 1)
+                      pagination.currentPage < pagination.totalPages &&
+                      onPageChange(pagination.currentPage + 1)
                     }
                     size="sm"
                     className={
-                      currentPage === totalPages
+                      pagination.currentPage === pagination.totalPages
                         ? 'opacity-50 cursor-not-allowed'
                         : 'cursor-pointer'
                     }

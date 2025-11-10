@@ -7,11 +7,14 @@ import { CategoryPage } from './dashboard/CategoryPage';
 import { CreatePostForm } from './dashboard/CreatePostForm';
 import { DeletePostDialog } from './dashboard/DeletePostDialog';
 import { EditPostDialog } from './dashboard/EditPostDialog';
+import { MediaLibrary } from './dashboard/MediaLibrary';
 import { PersonnelPage } from './dashboard/PersonnelPage';
 import { PostsList } from './dashboard/PostsList';
 import { ProductsPage } from './dashboard/ProductsPage';
 import { Sidebar } from './dashboard/Sidebar';
 import { Topbar } from './dashboard/Topbar';
+import { LandingSettingsPage } from './pages/dashboard/LandingSettingsPage';
+import { TicketsPage } from './pages/dashboard/TicketsPage';
 import { Button } from './ui/button';
 import {
   Card,
@@ -29,7 +32,14 @@ import {
   SelectValue,
 } from './ui/select';
 
-type PageType = 'posts' | 'products' | 'categories' | 'personnel';
+type PageType =
+  | 'posts'
+  | 'products'
+  | 'categories'
+  | 'personnel'
+  | 'media'
+  | 'tickets'
+  | 'landing-settings';
 
 // Enhanced PostsPage that includes post creation and listing
 const PostsPage = () => {
@@ -270,6 +280,12 @@ export function Dashboard() {
         return <CategoryPage />;
       case 'personnel':
         return <PersonnelPage />;
+      case 'media':
+        return <MediaLibrary />;
+      case 'tickets':
+        return <TicketsPage />;
+      case 'landing-settings':
+        return <LandingSettingsPage />;
       default:
         return <PostsPage />;
     }

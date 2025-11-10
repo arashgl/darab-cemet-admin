@@ -1,10 +1,11 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { LandingSetting } from '@/types/dashboard';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient, uploadClient } from './client';
 
 const landingSettingsService = {
   getAll: () => apiClient.get<LandingSetting[]>('/landing-settings'),
-  getById: (id: string) => apiClient.get<LandingSetting>(`/landing-settings/${id}`),
+  getById: (id: string) =>
+    apiClient.get<LandingSetting>(`/landing-settings/${id}`),
   create: (formData: FormData) =>
     uploadClient.post<LandingSetting>('/landing-settings', formData),
   update: (id: string, formData: FormData) =>
