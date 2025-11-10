@@ -12,14 +12,14 @@ interface DeletePersonnelDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
-  personnelTitle: string;
+  personnelName: string;
 }
 
 export function DeletePersonnelDialog({
   isOpen,
   onOpenChange,
   onConfirm,
-  personnelTitle,
+  personnelName,
 }: DeletePersonnelDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -27,7 +27,7 @@ export function DeletePersonnelDialog({
         <DialogHeader>
           <DialogTitle>حذف نیروی انسانی</DialogTitle>
           <DialogDescription>
-            آیا از حذف نیروی انسانی "{personnelTitle}" اطمینان دارید؟
+            آیا از حذف نیروی انسانی "{personnelName}" اطمینان دارید؟
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex justify-end space-x-2 rtl:space-x-reverse">

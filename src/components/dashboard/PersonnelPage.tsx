@@ -8,9 +8,16 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 import { showToast } from '@/lib/toast';
-import { Personnel } from '@/types/dashboard';
+import { Personnel, PersonnelType } from '@/types/dashboard';
 import { useState } from 'react';
 import { CreatePersonnelForm } from './CreatePersonnelForm';
 import { DeletePersonnelDialog } from './DeletePersonnelDialog';
@@ -27,10 +34,11 @@ export function PersonnelPage() {
     null
   );
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [selectedType, setSelectedType] = useState<PersonnelType | 'all'>(
+    'all'
+  );
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3100';
 
   // Use react-query hooks
   const {
@@ -40,7 +48,8 @@ export function PersonnelPage() {
   } = usePersonnelList({
     page: currentPage,
     limit: 10,
-    search: searchTerm,
+    type: selectedType === 'all' ? undefined : selectedType,
+    search: searchTerm || undefined,
   });
 
   const deletePersonnelMutation = useDeletePersonnel();
@@ -55,7 +64,7 @@ export function PersonnelPage() {
   };
 
   const openDeleteDialog = (id: string) => {
-    const person = personnel.find((p) => p.id === id);
+    const person = personnel.find((p: Personnel) => p.id === id);
     if (person) {
       setPersonnelToDelete(person);
       setIsDeleteDialogOpen(true);
@@ -79,13 +88,37 @@ export function PersonnelPage() {
     setIsEditDialogOpen(true);
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  const handleTypeChange = (value: string) => {
+    setSelectedType(value as PersonnelType | 'all');
+    setCurrentPage(1); // Reset to first page when filter changes
   };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1); // Reset to first page when searching
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setSelectedType('all');
+    setCurrentPage(1);
+  };
+
+  const getPersonnelTypeLabel = (type: PersonnelType) => {
+    switch (type) {
+      case PersonnelType.MANAGER:
+        return 'مدیرعامل';
+      case PersonnelType.ASSISTANT:
+        return 'معاونت';
+      case PersonnelType.MANAGERS:
+        return 'مدیریت';
+      default:
+        return type;
+    }
   };
 
   return (
@@ -117,7 +150,6 @@ export function PersonnelPage() {
                 setShowCreateForm(false);
                 refetch();
               }}
-              onError={(message: string) => showToast.error(message)}
             />
           </CardContent>
         </Card>
@@ -128,20 +160,32 @@ export function PersonnelPage() {
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
                   <Input
-                    placeholder="جستجو در عنوان نیروهای انسانی..."
+                    placeholder="جستجو در نام، سمت یا اطلاعات پرسنل..."
                     value={searchTerm}
                     onChange={handleSearch}
                   />
                 </div>
+                <div className="w-full md:w-64">
+                  <Select value={selectedType} onValueChange={handleTypeChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="انتخاب نوع پرسنل" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">همه انواع</SelectItem>
+                      {Object.values(PersonnelType).map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {getPersonnelTypeLabel(type)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    setSearchTerm('');
-                    setCurrentPage(1);
-                  }}
-                  disabled={!searchTerm}
+                  onClick={handleResetFilters}
+                  disabled={selectedType === 'all' && !searchTerm}
                 >
-                  پاک کردن فیلتر
+                  پاک کردن فیلترها
                 </Button>
               </div>
             </CardContent>
@@ -151,7 +195,6 @@ export function PersonnelPage() {
             isLoading={isLoading}
             onEdit={handleEdit}
             onDelete={openDeleteDialog}
-            apiUrl={apiUrl}
             pagination={pagination}
             onPageChange={handlePageChange}
           />
@@ -166,7 +209,6 @@ export function PersonnelPage() {
           showToast.success('نیروی انسانی با موفقیت ویرایش شد!');
           refetch();
         }}
-        apiUrl={apiUrl}
       />
 
       {personnelToDelete && (
@@ -174,7 +216,7 @@ export function PersonnelPage() {
           isOpen={isDeleteDialogOpen}
           onOpenChange={setIsDeleteDialogOpen}
           onConfirm={handleDelete}
-          personnelTitle={personnelToDelete.title}
+          personnelName={personnelToDelete.name}
         />
       )}
     </div>

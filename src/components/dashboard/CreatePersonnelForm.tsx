@@ -1,48 +1,35 @@
 import { useCreatePersonnel } from '@/api/personnel';
-import { CkEditor } from '@/components/dashboard/CKEditor';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { PersonnelType } from '@/types/dashboard';
 import { useState } from 'react';
 
 interface CreatePersonnelFormProps {
   onSuccess: (message: string) => void;
-  onError: (message: string) => void;
 }
 
-export function CreatePersonnelForm({
-  onSuccess,
-  onError,
-}: CreatePersonnelFormProps) {
-  const [isCreating, setIsCreating] = useState(false);
-  const [personnelImageFile, setPersonnelImageFile] = useState<File | null>(
-    null
+export function CreatePersonnelForm({ onSuccess }: CreatePersonnelFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedType, setSelectedType] = useState<PersonnelType>(
+    PersonnelType.ASSISTANT
   );
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [newPersonnel, setNewPersonnel] = useState<{
-    title: string;
-    content: string;
-    description: string;
-  }>({
-    content: '',
-    description: '',
-    title: '',
-  });
-
   const createPersonnelMutation = useCreatePersonnel();
   const { handleError } = useErrorHandler();
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setPersonnelImageFile(file);
 
       // Preview image
       const reader = new FileReader();
@@ -52,176 +39,202 @@ export function CreatePersonnelForm({
         }
       };
       reader.readAsDataURL(file);
+    } else {
+      setPreviewImage(null);
     }
   };
 
-  const createPersonnel = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!newPersonnel.title || !personnelImageFile) {
-      onError('لطفا تمام فیلدها را پر کنید و یک تصویر انتخاب کنید');
-      return;
-    }
+    setIsSubmitting(true);
 
-    setIsCreating(true);
+    const formData = new FormData(e.currentTarget);
+    formData.append('type', selectedType);
 
     try {
-      const formData = new FormData();
-      formData.append('title', newPersonnel.title);
-      formData.append('content', newPersonnel.content);
-
-      if (personnelImageFile) {
-        formData.append(
-          'personnelImage',
-          personnelImageFile,
-          personnelImageFile.name
-        );
-      }
-
       await createPersonnelMutation.mutateAsync(formData);
-
       onSuccess('نیروی انسانی با موفقیت ایجاد شد!');
-      setPersonnelImageFile(null);
+      (e.target as HTMLFormElement).reset();
+      setSelectedType(PersonnelType.ASSISTANT);
       setPreviewImage(null);
-
-      setNewPersonnel({
-        title: '',
-        description: '',
-        content: '',
-      });
     } catch (error) {
-      handleError(
-        error,
-        'ایجاد نیروی انسانی با مشکل مواجه شد. لطفا دوباره تلاش کنید.'
-      );
+      handleError(error, 'ایجاد نیروی انسانی با مشکل مواجه شد');
     } finally {
-      setIsCreating(false);
+      setIsSubmitting(false);
     }
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value } = e.target;
-
-    if (name === 'categoryId') {
-      setNewPersonnel((prev) => ({
-        ...prev,
-        [name]: value ? parseInt(value, 10) : null,
-      }));
-    } else {
-      setNewPersonnel((prev) => ({ ...prev, [name]: value }));
+  const getPersonnelTypeLabel = (type: PersonnelType) => {
+    switch (type) {
+      case PersonnelType.MANAGER:
+        return 'مدیرعامل';
+      case PersonnelType.ASSISTANT:
+        return 'معاونت';
+      case PersonnelType.MANAGERS:
+        return 'مدیریت';
+      default:
+        return type;
     }
   };
 
   return (
-    <Card className="border-neutral-300 dark:border-neutral-700 shadow-lg">
-      <CardHeader>
-        <CardTitle>ایجاد نیروی انسانی جدید</CardTitle>
-        <CardDescription>اطلاعات نیروی انسانی را وارد کنید</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={createPersonnel} className="space-y-6">
-          <div className="space-y-2">
-            <label htmlFor="title" className="text-sm font-medium">
-              عنوان
-            </label>
-            <Input
-              id="title"
-              name="title"
-              placeholder="عنوان نیروی انسانی"
-              value={newPersonnel.title}
-              onChange={handleChange}
-              required
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="name">نام و نام خانوادگی</Label>
+          <Input
+            id="name"
+            name="name"
+            type="text"
+            required
+            className="w-full"
+            placeholder="نام و نام خانوادگی را وارد کنید"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="position">سمت</Label>
+          <Input
+            id="position"
+            name="position"
+            type="text"
+            required
+            className="w-full"
+            placeholder="سمت را وارد کنید"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="education">تحصیلات</Label>
+          <Input
+            id="education"
+            name="education"
+            type="text"
+            required
+            className="w-full"
+            placeholder="تحصیلات را وارد کنید"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="workplace">محل کار</Label>
+          <Input
+            id="workplace"
+            name="workplace"
+            type="text"
+            required
+            className="w-full"
+            placeholder="محل کار را وارد کنید"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="phone">شماره تلفن</Label>
+          <Input
+            id="phone"
+            name="phone"
+            type="tel"
+            required
+            className="w-full"
+            placeholder="شماره تلفن را وارد کنید"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="email">ایمیل</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            required
+            className="w-full"
+            placeholder="ایمیل را وارد کنید"
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="experience">تجربه کاری</Label>
+        <Textarea
+          id="experience"
+          name="experience"
+          required
+          className="w-full min-h-[80px]"
+          placeholder="تجربه کاری را وارد کنید"
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="resume">رزومه</Label>
+        <Textarea
+          id="resume"
+          name="resume"
+          required
+          className="w-full min-h-[120px]"
+          placeholder="رزومه را وارد کنید"
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="additionalInfo">اطلاعات اضافی (اختیاری)</Label>
+        <Textarea
+          id="additionalInfo"
+          name="additionalInfo"
+          className="w-full min-h-[80px]"
+          placeholder="اطلاعات اضافی را وارد کنید"
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="type">نوع پرسنل</Label>
+        <Select
+          value={selectedType}
+          onValueChange={(value) => setSelectedType(value as PersonnelType)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="نوع پرسنل را انتخاب کنید" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.values(PersonnelType).map((type) => (
+              <SelectItem key={type} value={type}>
+                {getPersonnelTypeLabel(type)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label htmlFor="image">تصویر (اختیاری)</Label>
+        <Input
+          id="image"
+          name="image"
+          type="file"
+          accept="image/*"
+          className="w-full"
+          onChange={handleImageUpload}
+        />
+        <p className="text-xs text-neutral-500 mt-1">
+          حداکثر اندازه فایل: 5MB - فرمت‌های مجاز: JPG, PNG, GIF
+        </p>
+        {previewImage && (
+          <div className="mt-2">
+            <img
+              src={previewImage}
+              alt="پیش‌نمایش تصویر"
+              className="max-h-40 rounded-md border"
             />
           </div>
+        )}
+      </div>
 
-          <div className="space-y-2">
-            <label htmlFor="personnelInfo" className="text-sm font-medium">
-              اطلاعات نیرو
-            </label>
-            <textarea
-              id="personnelInfo"
-              name="personnelInfo"
-              placeholder="اطلاعات تخصصی و شغلی نیرو"
-              onChange={handleChange}
-              required
-              rows={4}
-              className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-950 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="personnelImage" className="text-sm font-medium">
-              تصویر پرسنلی
-            </label>
-            <Input
-              id="personnelImage"
-              name="personnelImage"
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              required={!personnelImageFile}
-            />
-            {previewImage && (
-              <div className="mt-2">
-                <img
-                  src={previewImage}
-                  alt="Preview"
-                  className="max-h-40 rounded-md"
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="content" className="text-sm font-medium">
-              اطلاعات تکمیلی
-            </label>
-            <CkEditor
-              initialContent=""
-              onChange={(html) => {
-                console.log('Lexical content:', html);
-                setNewPersonnel((prev) => ({ ...prev, content: html }));
-              }}
-              apiUrl={''}
-              onError={onError}
-              onSuccess={onSuccess}
-            />
-          </div>
-
-          <Button type="submit" className="w-full mt-8" disabled={isCreating}>
-            {isCreating ? (
-              <>
-                <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                در حال ایجاد...
-              </>
-            ) : (
-              'ایجاد نیروی انسانی'
-            )}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+      <Button type="submit" disabled={isSubmitting} className="w-full">
+        {isSubmitting ? 'در حال ایجاد...' : 'ایجاد نیروی انسانی'}
+      </Button>
+    </form>
   );
 }

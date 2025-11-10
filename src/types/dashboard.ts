@@ -76,11 +76,31 @@ export interface User {
 
 export interface Personnel {
   id: string;
-  title: string;
-  personnelInfo: string;
-  personnelImage?: string;
+  name: string;
+  position: string;
+  education: string;
+  workplace: string;
+  experience: string;
+  phone: string;
+  email: string;
+  resume: string;
+  additionalInfo?: string;
+  image?: string;
+  type: PersonnelType;
   createdAt: string;
   updatedAt: string;
+}
+
+export enum PersonnelType {
+  MANAGER = 'manager',
+  ASSISTANT = 'assistant',
+  MANAGERS = 'managers',
+}
+
+export interface PersonnelFilters {
+  type?: PersonnelType;
+  name?: string;
+  position?: string;
 }
 
 export interface MediaItem {
