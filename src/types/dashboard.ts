@@ -18,6 +18,7 @@ export interface Post {
   section: string;
   tags?: string[];
   leadPicture?: string;
+  gallery?: string[] | string;
   categoryId?: number | null;
   attachments?: Attachment[] | string[];
   createdAt: string;

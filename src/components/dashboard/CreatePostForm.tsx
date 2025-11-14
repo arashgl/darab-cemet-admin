@@ -36,6 +36,8 @@ export function CreatePostForm({
   const [isCreating, setIsCreating] = useState(false);
   const [leadPictureFile, setLeadPictureFile] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
@@ -81,6 +83,32 @@ export function CreatePostForm({
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      setGalleryFiles((prev) => [...prev, ...files]);
+
+      // Preview images
+      files.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target && event.target.result) {
+            setGalleryPreviews((prev) => [
+              ...prev,
+              event.target!.result as string,
+            ]);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const handleRemoveGalleryImage = (index: number) => {
+    setGalleryFiles((prev) => prev.filter((_, i) => i !== index));
+    setGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleChange = (
@@ -158,6 +186,13 @@ export function CreatePostForm({
 
       if (leadPictureFile) {
         formData.append('leadPicture', leadPictureFile, leadPictureFile.name);
+      }
+
+      // Add gallery images to the form data
+      if (galleryFiles.length > 0) {
+        galleryFiles.forEach((file) => {
+          formData.append('gallery', file, file.name);
+        });
       }
 
       // Add attachments to the form data
@@ -338,6 +373,40 @@ export function CreatePostForm({
                   alt="Preview"
                   className="max-h-40 rounded-md"
                 />
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="gallery" className="text-sm font-medium">
+              گالری تصاویر (اختیاری)
+            </label>
+            <Input
+              id="gallery"
+              name="gallery"
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleGalleryUpload}
+            />
+            {galleryPreviews.length > 0 && (
+              <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
+                {galleryPreviews.map((preview, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={preview}
+                      alt={`Gallery ${index + 1}`}
+                      className="w-full h-32 object-cover rounded-md"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveGalleryImage(index)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>

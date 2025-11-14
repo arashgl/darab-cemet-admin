@@ -40,6 +40,9 @@ export function EditPostDialog({
 }: EditPostDialogProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [leadPictureFile, setLeadPictureFile] = useState<File | null>(null);
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+  const [existingGallery, setExistingGallery] = useState<string[]>([]);
   const [currentPost, setCurrentPost] = useState<Post | null>(null);
   const [tagInput, setTagInput] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
@@ -49,6 +52,12 @@ export function EditPostDialog({
   useEffect(() => {
     if (post) {
       setCurrentPost(post);
+      console.log('- post', post);
+      setExistingGallery(
+        typeof post.gallery === 'string'
+          ? post.gallery.split(',')
+          : post.gallery || []
+      );
     }
   }, [post]);
 
@@ -75,6 +84,36 @@ export function EditPostDialog({
     if (e.target.files && e.target.files[0]) {
       setLeadPictureFile(e.target.files[0]);
     }
+  };
+
+  const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      setGalleryFiles((prev) => [...prev, ...files]);
+
+      // Preview images
+      files.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target && event.target.result) {
+            setGalleryPreviews((prev) => [
+              ...prev,
+              event.target!.result as string,
+            ]);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const handleRemoveNewGalleryImage = (index: number) => {
+    setGalleryFiles((prev) => prev.filter((_, i) => i !== index));
+    setGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveExistingGalleryImage = (index: number) => {
+    setExistingGallery((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleChange = (
@@ -164,6 +203,20 @@ export function EditPostDialog({
         formData.append('leadPicture', leadPictureFile);
       }
 
+      // Add existing gallery images that weren't removed
+      if (existingGallery.length > 0) {
+        existingGallery.forEach((imageUrl) => {
+          formData.append('existingGallery[]', imageUrl);
+        });
+      }
+
+      // Add new gallery images
+      // if (galleryFiles.length > 0) {
+      //   galleryFiles.forEach((file) => {
+      //     formData.append('gallery', file, file.name);
+      //   });
+      // }
+
       attachments.forEach((attachment) => {
         formData.append('attachments', attachment.file, attachment.file.name);
       });
@@ -177,6 +230,8 @@ export function EditPostDialog({
       onSuccess('پست با موفقیت ویرایش شد!');
       onOpenChange(false);
       setLeadPictureFile(null);
+      setGalleryFiles([]);
+      setGalleryPreviews([]);
       setAttachments([]);
     } catch (error) {
       let errorMessage = 'ویرایش پست با مشکل مواجه شد. لطفا دوباره تلاش کنید.';
@@ -335,6 +390,70 @@ export function EditPostDialog({
                   alt="Lead Picture"
                   className="max-h-40 rounded-md"
                 />
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="edit-gallery" className="text-sm font-medium">
+              گالری تصاویر (اختیاری)
+            </label>
+            <Input
+              id="edit-gallery"
+              name="gallery"
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleGalleryUpload}
+            />
+            {existingGallery.length > 0 && (
+              <div className="mt-2">
+                <p className="text-xs text-neutral-500 mb-2">
+                  تصاویر موجود در گالری:
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {existingGallery.map((imageUrl, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={`${apiUrl}/${imageUrl}`}
+                        alt={`Gallery ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-md"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveExistingGalleryImage(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {galleryPreviews.length > 0 && (
+              <div className="mt-2">
+                <p className="text-xs text-neutral-500 mb-2">
+                  تصاویر جدید برای اضافه شدن:
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {galleryPreviews.map((preview, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={preview}
+                        alt={`New Gallery ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-md"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveNewGalleryImage(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
