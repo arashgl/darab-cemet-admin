@@ -43,7 +43,7 @@ export function MediaLibrary({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [mediaType, setMediaType] = useState<string>('');
+  const [mediaType, setMediaType] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationMeta>({
     currentPage: 1,
@@ -53,7 +53,7 @@ export function MediaLibrary({
   });
 
   const mediaTypeOptions = [
-    { value: '', label: 'همه' },
+    { value: 'all', label: 'همه' },
     { value: MediaType.IMAGE, label: 'تصویر' },
     { value: MediaType.VIDEO, label: 'ویدیو' },
   ];
@@ -81,7 +81,7 @@ export function MediaLibrary({
     setIsLoading(true);
     try {
       let url = `/media?page=${currentPage}&limit=20`;
-      if (mediaType) {
+      if (mediaType && mediaType !== 'all') {
         url += `&type=${mediaType}`;
       }
 

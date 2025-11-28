@@ -146,208 +146,212 @@ export function EditPersonnelDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>ویرایش نیروی انسانی</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="edit-name">نام و نام خانوادگی</Label>
-              <Input
-                id="edit-name"
-                name="name"
-                type="text"
-                required
-                value={formData.name || ''}
-                onChange={handleInputChange}
-                placeholder="نام و نام خانوادگی را وارد کنید"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="edit-position">سمت</Label>
-              <Input
-                id="edit-position"
-                name="position"
-                type="text"
-                required
-                value={formData.position || ''}
-                onChange={handleInputChange}
-                placeholder="سمت را وارد کنید"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="edit-education">تحصیلات</Label>
-              <Input
-                id="edit-education"
-                name="education"
-                type="text"
-                required
-                value={formData.education || ''}
-                onChange={handleInputChange}
-                placeholder="تحصیلات را وارد کنید"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="edit-workplace">محل کار</Label>
-              <Input
-                id="edit-workplace"
-                name="workplace"
-                type="text"
-                required
-                value={formData.workplace || ''}
-                onChange={handleInputChange}
-                placeholder="محل کار را وارد کنید"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="edit-phone">شماره تلفن</Label>
-              <Input
-                id="edit-phone"
-                name="phone"
-                type="tel"
-                required
-                value={formData.phone || ''}
-                onChange={handleInputChange}
-                placeholder="شماره تلفن را وارد کنید"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="edit-email">ایمیل</Label>
-              <Input
-                id="edit-email"
-                name="email"
-                type="email"
-                required
-                value={formData.email || ''}
-                onChange={handleInputChange}
-                placeholder="ایمیل را وارد کنید"
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="edit-experience">تجربه کاری</Label>
-            <Textarea
-              id="edit-experience"
-              name="experience"
-              required
-              value={formData.experience || ''}
-              onChange={handleInputChange}
-              className="min-h-[80px]"
-              placeholder="تجربه کاری را وارد کنید"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="edit-resume">رزومه</Label>
-            <Textarea
-              id="edit-resume"
-              name="resume"
-              required
-              value={formData.resume || ''}
-              onChange={handleInputChange}
-              className="min-h-[120px]"
-              placeholder="رزومه را وارد کنید"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="edit-additionalInfo">اطلاعات اضافی (اختیاری)</Label>
-            <Textarea
-              id="edit-additionalInfo"
-              name="additionalInfo"
-              value={formData.additionalInfo || ''}
-              onChange={handleInputChange}
-              className="min-h-[80px]"
-              placeholder="اطلاعات اضافی را وارد کنید"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="edit-type">نوع پرسنل</Label>
-            <Select
-              value={formData.type || PersonnelType.ASSISTANT}
-              onValueChange={(value) => handleSelectChange('type', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="نوع پرسنل را انتخاب کنید" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.values(PersonnelType).map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {getPersonnelTypeLabel(type)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="edit-image">تصویر (اختیاری)</Label>
-            <Input
-              id="edit-image"
-              name="image"
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-            />
-            <p className="text-xs text-neutral-500 mt-1">
-              حداکثر اندازه فایل: 5MB - فرمت‌های مجاز: JPG, PNG, GIF
-            </p>
-
-            {/* Show preview of new image */}
-            {previewImage && (
-              <div className="mt-2">
-                <p className="text-sm text-neutral-600 mb-2">تصویر جدید:</p>
-                <img
-                  src={previewImage}
-                  alt="پیش‌نمایش تصویر جدید"
-                  className="max-h-40 rounded-md border"
+        <div className="overflow-y-auto flex-1">
+          <form onSubmit={handleSubmit} className="space-y-4 p-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-name">نام و نام خانوادگی</Label>
+                <Input
+                  id="edit-name"
+                  name="name"
+                  type="text"
+                  required
+                  value={formData.name || ''}
+                  onChange={handleInputChange}
+                  placeholder="نام و نام خانوادگی را وارد کنید"
                 />
               </div>
-            )}
 
-            {/* Show current image if no new image selected */}
-            {!previewImage && personnel.image && (
-              <div className="mt-2">
-                <p className="text-sm text-neutral-600 mb-2">تصویر فعلی:</p>
-                <img
-                  src={
-                    personnel.image.startsWith('http')
-                      ? personnel.image
-                      : `${apiUrl}${personnel.image}`
-                  }
-                  alt="تصویر فعلی"
-                  className="max-h-40 rounded-md border"
+              <div>
+                <Label htmlFor="edit-position">سمت</Label>
+                <Input
+                  id="edit-position"
+                  name="position"
+                  type="text"
+                  required
+                  value={formData.position || ''}
+                  onChange={handleInputChange}
+                  placeholder="سمت را وارد کنید"
                 />
               </div>
-            )}
-          </div>
+            </div>
 
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isEditing}
-            >
-              لغو
-            </Button>
-            <Button type="submit" disabled={isEditing}>
-              {isEditing ? 'در حال ویرایش...' : 'ذخیره تغییرات'}
-            </Button>
-          </div>
-        </form>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-education">تحصیلات</Label>
+                <Input
+                  id="edit-education"
+                  name="education"
+                  type="text"
+                  required
+                  value={formData.education || ''}
+                  onChange={handleInputChange}
+                  placeholder="تحصیلات را وارد کنید"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-workplace">محل کار</Label>
+                <Input
+                  id="edit-workplace"
+                  name="workplace"
+                  type="text"
+                  required
+                  value={formData.workplace || ''}
+                  onChange={handleInputChange}
+                  placeholder="محل کار را وارد کنید"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-phone">شماره تلفن</Label>
+                <Input
+                  id="edit-phone"
+                  name="phone"
+                  type="tel"
+                  required
+                  value={formData.phone || ''}
+                  onChange={handleInputChange}
+                  placeholder="شماره تلفن را وارد کنید"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-email">ایمیل</Label>
+                <Input
+                  id="edit-email"
+                  name="email"
+                  type="email"
+                  required
+                  value={formData.email || ''}
+                  onChange={handleInputChange}
+                  placeholder="ایمیل را وارد کنید"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="edit-experience">تجربه کاری</Label>
+              <Textarea
+                id="edit-experience"
+                name="experience"
+                required
+                value={formData.experience || ''}
+                onChange={handleInputChange}
+                className="min-h-[80px]"
+                placeholder="تجربه کاری را وارد کنید"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="edit-resume">رزومه</Label>
+              <Textarea
+                id="edit-resume"
+                name="resume"
+                required
+                value={formData.resume || ''}
+                onChange={handleInputChange}
+                className="min-h-[120px]"
+                placeholder="رزومه را وارد کنید"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="edit-additionalInfo">
+                اطلاعات اضافی (اختیاری)
+              </Label>
+              <Textarea
+                id="edit-additionalInfo"
+                name="additionalInfo"
+                value={formData.additionalInfo || ''}
+                onChange={handleInputChange}
+                className="min-h-[80px]"
+                placeholder="اطلاعات اضافی را وارد کنید"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="edit-type">نوع پرسنل</Label>
+              <Select
+                value={formData.type || PersonnelType.ASSISTANT}
+                onValueChange={(value) => handleSelectChange('type', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="نوع پرسنل را انتخاب کنید" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(PersonnelType).map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {getPersonnelTypeLabel(type)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="edit-image">تصویر (اختیاری)</Label>
+              <Input
+                id="edit-image"
+                name="image"
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+              />
+              <p className="text-xs text-neutral-500 mt-1">
+                حداکثر اندازه فایل: 5MB - فرمت‌های مجاز: JPG, PNG, GIF
+              </p>
+
+              {/* Show preview of new image */}
+              {previewImage && (
+                <div className="mt-2">
+                  <p className="text-sm text-neutral-600 mb-2">تصویر جدید:</p>
+                  <img
+                    src={previewImage}
+                    alt="پیش‌نمایش تصویر جدید"
+                    className="max-h-40 rounded-md border"
+                  />
+                </div>
+              )}
+
+              {/* Show current image if no new image selected */}
+              {!previewImage && personnel.image && (
+                <div className="mt-2">
+                  <p className="text-sm text-neutral-600 mb-2">تصویر فعلی:</p>
+                  <img
+                    src={
+                      personnel.image.startsWith('http')
+                        ? personnel.image
+                        : `${apiUrl}${personnel.image}`
+                    }
+                    alt="تصویر فعلی"
+                    className="max-h-40 rounded-md border"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isEditing}
+              >
+                لغو
+              </Button>
+              <Button type="submit" disabled={isEditing}>
+                {isEditing ? 'در حال ویرایش...' : 'ذخیره تغییرات'}
+              </Button>
+            </div>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

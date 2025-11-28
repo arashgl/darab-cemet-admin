@@ -1,6 +1,5 @@
-import { LoginForm } from '@/components/pages/auth/LoginForm';
-import { Dashboard } from '@/components/pages/dashboard/Dashboard';
-import { useAuth } from '@/hooks/useAuth';
+import { router } from '@/router';
+import { RouterProvider } from 'react-router-dom';
 import './index.css';
 
 // Custom CSS for animations
@@ -112,21 +111,11 @@ const customStyles = `
 `;
 
 function App() {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-neutral-900 dark:border-neutral-50"></div>
-      </div>
-    );
-  }
-
   return (
     <>
       <style>{customStyles}</style>
       <div className="rtl">
-        {isAuthenticated ? <Dashboard /> : <LoginForm />}
+        <RouterProvider router={router} />
       </div>
     </>
   );

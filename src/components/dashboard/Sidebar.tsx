@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button';
 import {
   FileText,
   FolderTree,
@@ -8,58 +7,17 @@ import {
   Settings,
   Users,
 } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
 
-type PageType =
-  | 'posts'
-  | 'products'
-  | 'categories'
-  | 'personnel'
-  | 'media'
-  | 'tickets'
-  | 'landing-settings';
-
-interface SidebarProps {
-  currentPage: PageType;
-  setCurrentPage: (page: PageType) => void;
-}
-
-export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
+export function Sidebar() {
   const menuItems = [
-    {
-      id: 'posts',
-      label: 'پست‌ها',
-      icon: <FileText className="h-5 w-5" />,
-    },
-    {
-      id: 'products',
-      label: 'محصولات',
-      icon: <Package className="h-5 w-5" />,
-    },
-    {
-      id: 'categories',
-      label: 'دسته‌بندی‌ها',
-      icon: <FolderTree className="h-5 w-5" />,
-    },
-    {
-      id: 'personnel',
-      label: 'منابع انسانی',
-      icon: <Users className="h-5 w-5" />,
-    },
-    {
-      id: 'media',
-      label: 'رسانه‌ها',
-      icon: <Image className="h-5 w-5" />,
-    },
-    {
-      id: 'tickets',
-      label: 'تیکت‌ها',
-      icon: <MessageSquare className="h-5 w-5" />,
-    },
-    {
-      id: 'landing-settings',
-      label: 'تنظیمات لندینگ',
-      icon: <Settings className="h-5 w-5" />,
-    },
+    { path: '/posts', label: 'پست‌ها', icon: FileText },
+    { path: '/products', label: 'محصولات', icon: Package },
+    { path: '/categories', label: 'دسته‌بندی‌ها', icon: FolderTree },
+    { path: '/personnel', label: 'منابع انسانی', icon: Users },
+    { path: '/media', label: 'رسانه‌ها', icon: Image },
+    { path: '/tickets', label: 'تیکت‌ها', icon: MessageSquare },
+    { path: '/landing-settings', label: 'تنظیمات لندینگ', icon: Settings },
   ];
 
   return (
@@ -67,19 +25,25 @@ export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
       <div className="p-4">
         <h2 className="text-lg font-semibold mb-4 px-2">داشبورد</h2>
         <nav className="flex flex-col space-y-1">
-          {menuItems.map((item) => (
-            <Button
-              key={item.id}
-              variant={
-                currentPage === (item.id as PageType) ? 'default' : 'ghost'
-              }
-              className="w-full justify-start gap-2 mb-1 text-sm md:text-base"
-              onClick={() => setCurrentPage(item.id as PageType)}
-            >
-              {item.icon}
-              {item.label}
-            </Button>
-          ))}
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-neutral-900 text-white dark:bg-neutral-50 dark:text-neutral-900'
+                      : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700'
+                  }`
+                }
+              >
+                <Icon className="h-5 w-5" />
+                <span className="text-sm md:text-base">{item.label}</span>
+              </NavLink>
+            );
+          })}
         </nav>
       </div>
     </aside>

@@ -204,18 +204,15 @@ export function EditPostDialog({
       }
 
       // Add existing gallery images that weren't removed
-      if (existingGallery.length > 0) {
-        existingGallery.forEach((imageUrl) => {
-          formData.append('existingGallery[]', imageUrl);
-        });
-      }
+      // Always send existingGallery, even if empty
+      existingGallery.forEach((imageUrl) => {
+        formData.append('existingGallery[]', imageUrl);
+      });
 
       // Add new gallery images
-      // if (galleryFiles.length > 0) {
-      //   galleryFiles.forEach((file) => {
-      //     formData.append('gallery', file, file.name);
-      //   });
-      // }
+      galleryFiles.forEach((file) => {
+        formData.append('gallery', file, file.name);
+      });
 
       attachments.forEach((attachment) => {
         formData.append('attachments', attachment.file, attachment.file.name);
@@ -256,245 +253,249 @@ export function EditPostDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>ویرایش پست</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleUpdatePost} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="overflow-y-auto flex-1">
+          <form onSubmit={handleUpdatePost} className="space-y-6 p-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label htmlFor="edit-title" className="text-sm font-medium">
+                  عنوان
+                </label>
+                <Input
+                  id="edit-title"
+                  name="title"
+                  placeholder="عنوان پست"
+                  value={currentPost.title}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="edit-section" className="text-sm font-medium">
+                  بخش
+                </label>
+                <select
+                  id="edit-section"
+                  name="section"
+                  value={currentPost.section}
+                  onChange={handleChange}
+                  required
+                  className="flex h-10 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-950 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300"
+                >
+                  {sections.map((section) => (
+                    <option key={section.value} value={section.value}>
+                      {section.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <label htmlFor="edit-title" className="text-sm font-medium">
-                عنوان
+              <label htmlFor="edit-categoryId" className="text-sm font-medium">
+                دسته‌بندی
               </label>
-              <Input
-                id="edit-title"
-                name="title"
-                placeholder="عنوان پست"
-                value={currentPost.title}
+              <select
+                id="edit-categoryId"
+                name="categoryId"
+                value={
+                  currentPost.categoryId === null ||
+                  currentPost.categoryId === undefined
+                    ? ''
+                    : currentPost.categoryId.toString()
+                }
                 onChange={handleChange}
-                required
+                className="flex h-10 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-950 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300"
+              >
+                <option value="">انتخاب دسته‌بندی</option>
+                {isLoading ? (
+                  <option disabled>در حال بارگذاری...</option>
+                ) : (
+                  categories.map((category) => (
+                    <option key={category.id} value={category.id.toString()}>
+                      {category.name}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="edit-tags" className="text-sm font-medium">
+                برچسب‌ها
+              </label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {(currentPost.tags || []).map((tag: string, index: number) => (
+                  <div
+                    key={index}
+                    className="flex items-center bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded-md"
+                  >
+                    <span className="text-sm">{tag}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag)}
+                      className="ml-1 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <Input
+                id="edit-tags"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleAddTag}
+                placeholder="برچسب را وارد کرده و Enter را بزنید"
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="edit-section" className="text-sm font-medium">
-                بخش
+              <label htmlFor="edit-description" className="text-sm font-medium">
+                توضیحات کوتاه
               </label>
-              <select
-                id="edit-section"
-                name="section"
-                value={currentPost.section}
+              <textarea
+                id="edit-description"
+                name="description"
+                placeholder="توضیح مختصر درباره پست"
+                value={currentPost.description}
                 onChange={handleChange}
                 required
-                className="flex h-10 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-950 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300"
-              >
-                {sections.map((section) => (
-                  <option key={section.value} value={section.value}>
-                    {section.label}
-                  </option>
-                ))}
-              </select>
+                rows={2}
+                className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-950 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300"
+              />
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <label htmlFor="edit-categoryId" className="text-sm font-medium">
-              دسته‌بندی
-            </label>
-            <select
-              id="edit-categoryId"
-              name="categoryId"
-              value={
-                currentPost.categoryId === null ||
-                currentPost.categoryId === undefined
-                  ? ''
-                  : currentPost.categoryId.toString()
-              }
-              onChange={handleChange}
-              className="flex h-10 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-950 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300"
-            >
-              <option value="">انتخاب دسته‌بندی</option>
-              {isLoading ? (
-                <option disabled>در حال بارگذاری...</option>
-              ) : (
-                categories.map((category) => (
-                  <option key={category.id} value={category.id.toString()}>
-                    {category.name}
-                  </option>
-                ))
+            <div className="space-y-2">
+              <label htmlFor="edit-leadPicture" className="text-sm font-medium">
+                تصویر اصلی (اختیاری)
+              </label>
+              <Input
+                id="edit-leadPicture"
+                name="leadPicture"
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+              />
+              {currentPost.leadPicture && !leadPictureFile && (
+                <div className="mt-2">
+                  <img
+                    src={`${apiUrl}/${currentPost.leadPicture}`}
+                    alt="Lead Picture"
+                    className="max-h-40 rounded-md"
+                  />
+                </div>
               )}
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="edit-tags" className="text-sm font-medium">
-              برچسب‌ها
-            </label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {(currentPost.tags || []).map((tag: string, index: number) => (
-                <div
-                  key={index}
-                  className="flex items-center bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded-md"
-                >
-                  <span className="text-sm">{tag}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTag(tag)}
-                    className="ml-1 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
             </div>
-            <Input
-              id="edit-tags"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleAddTag}
-              placeholder="برچسب را وارد کرده و Enter را بزنید"
-            />
-          </div>
 
-          <div className="space-y-2">
-            <label htmlFor="edit-description" className="text-sm font-medium">
-              توضیحات کوتاه
-            </label>
-            <textarea
-              id="edit-description"
-              name="description"
-              placeholder="توضیح مختصر درباره پست"
-              value={currentPost.description}
-              onChange={handleChange}
-              required
-              rows={2}
-              className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-950 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="edit-leadPicture" className="text-sm font-medium">
-              تصویر اصلی (اختیاری)
-            </label>
-            <Input
-              id="edit-leadPicture"
-              name="leadPicture"
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-            />
-            {currentPost.leadPicture && !leadPictureFile && (
-              <div className="mt-2">
-                <img
-                  src={`${apiUrl}/${currentPost.leadPicture}`}
-                  alt="Lead Picture"
-                  className="max-h-40 rounded-md"
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="edit-gallery" className="text-sm font-medium">
-              گالری تصاویر (اختیاری)
-            </label>
-            <Input
-              id="edit-gallery"
-              name="gallery"
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleGalleryUpload}
-            />
-            {existingGallery.length > 0 && (
-              <div className="mt-2">
-                <p className="text-xs text-neutral-500 mb-2">
-                  تصاویر موجود در گالری:
-                </p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  {existingGallery.map((imageUrl, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={`${apiUrl}/${imageUrl}`}
-                        alt={`Gallery ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-md"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveExistingGalleryImage(index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  ))}
+            <div className="space-y-2">
+              <label htmlFor="edit-gallery" className="text-sm font-medium">
+                گالری تصاویر (اختیاری)
+              </label>
+              <Input
+                id="edit-gallery"
+                name="gallery"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleGalleryUpload}
+              />
+              {existingGallery.length > 0 && (
+                <div className="mt-2">
+                  <p className="text-xs text-neutral-500 mb-2">
+                    تصاویر موجود در گالری:
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {existingGallery.map((imageUrl, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={`${apiUrl}/${imageUrl}`}
+                          alt={`Gallery ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-md"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleRemoveExistingGalleryImage(index)
+                          }
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-            {galleryPreviews.length > 0 && (
-              <div className="mt-2">
-                <p className="text-xs text-neutral-500 mb-2">
-                  تصاویر جدید برای اضافه شدن:
-                </p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  {galleryPreviews.map((preview, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={preview}
-                        alt={`New Gallery ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-md"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveNewGalleryImage(index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  ))}
+              )}
+              {galleryPreviews.length > 0 && (
+                <div className="mt-2">
+                  <p className="text-xs text-neutral-500 mb-2">
+                    تصاویر جدید برای اضافه شدن:
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {galleryPreviews.map((preview, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={preview}
+                          alt={`New Gallery ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-md"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveNewGalleryImage(index)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          <div className="space-y-2">
-            <label htmlFor="edit-content" className="text-sm font-medium">
-              محتوا
-            </label>
-            <CkEditor
-              initialContent={currentPost.content}
-              onChange={handleContentChange}
-              apiUrl={apiUrl}
-              onError={onError}
-              onSuccess={onSuccess}
-            />
-          </div>
+            <div className="space-y-2">
+              <label htmlFor="edit-content" className="text-sm font-medium">
+                محتوا
+              </label>
+              <CkEditor
+                initialContent={currentPost.content}
+                onChange={handleContentChange}
+                apiUrl={apiUrl}
+                onError={onError}
+                onSuccess={onSuccess}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">پیوست‌ها (اختیاری)</label>
-            <FileUploader
-              attachments={attachments}
-              onAttachmentsChange={setAttachments}
-              maxFiles={5}
-              maxFileSize={10}
-              showDescriptions={false}
-            />
-          </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">پیوست‌ها (اختیاری)</label>
+              <FileUploader
+                attachments={attachments}
+                onAttachmentsChange={setAttachments}
+                maxFiles={5}
+                maxFileSize={10}
+                showDescriptions={false}
+              />
+            </div>
 
-          <div className="flex justify-end gap-2 mt-8">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              لغو
-            </Button>
-            <Button type="submit" disabled={isEditing}>
-              {isEditing ? 'در حال ویرایش...' : 'ذخیره تغییرات'}
-            </Button>
-          </div>
-        </form>
+            <div className="flex justify-end gap-2 mt-8">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                لغو
+              </Button>
+              <Button type="submit" disabled={isEditing}>
+                {isEditing ? 'در حال ویرایش...' : 'ذخیره تغییرات'}
+              </Button>
+            </div>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

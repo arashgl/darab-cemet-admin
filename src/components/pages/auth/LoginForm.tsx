@@ -1,3 +1,4 @@
+import { useLogin } from '@/api/auth';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -8,22 +9,30 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/hooks/useAuth';
 import { showToast } from '@/lib/toast';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  const loginMutation = useLogin();
 
-  const { login, isLoading } = useAuth();
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/posts');
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      await login(email, password);
+      await loginMutation.mutateAsync({ email, password });
       showToast.success('ورود موفقیت‌آمیز! در حال انتقال...');
+      navigate('/posts');
     } catch (err) {
       showToast.error(err instanceof Error ? err.message : 'ورود ناموفق بود');
     }
@@ -100,9 +109,9 @@ export function LoginForm() {
               <Button
                 type="submit"
                 className="w-full animate-fade-in-3 transition-all duration-300 hover:scale-[1.03]"
-                disabled={isLoading}
+                disabled={loginMutation.isPending}
               >
-                {isLoading ? (
+                {loginMutation.isPending ? (
                   <svg
                     className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                     xmlns="http://www.w3.org/2000/svg"
@@ -124,7 +133,7 @@ export function LoginForm() {
                     ></path>
                   </svg>
                 ) : null}
-                {isLoading ? 'در حال ورود...' : 'ورود'}
+                {loginMutation.isPending ? 'در حال ورود...' : 'ورود'}
               </Button>
             </form>
           </CardContent>

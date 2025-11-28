@@ -4,6 +4,17 @@ import {
   useGetLandingSettings,
   useUpdateLandingSetting,
 } from '@/api/landing-settings';
+import { CkEditor } from '@/components/dashboard/CKEditor';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -20,22 +31,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { showToast } from '@/lib/toast';
 import { LandingSetting } from '@/types/dashboard';
 import { Edit, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
-import { CkEditor } from '@/components/dashboard/CKEditor';
+import { useEffect, useState } from 'react';
 
 const stripHtml = (html: string) => {
   const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -46,7 +46,9 @@ export function LandingSettingsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedSetting, setSelectedSetting] = useState<LandingSetting | null>(null);
+  const [selectedSetting, setSelectedSetting] = useState<LandingSetting | null>(
+    null
+  );
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3100';
 
@@ -143,7 +145,8 @@ export function LandingSettingsPage() {
                   alt={setting.title}
                   className="w-full h-48 object-cover rounded-md mb-4"
                   onError={(e) => {
-                    e.currentTarget.src = 'https://via.placeholder.com/400x300?text=No+Image';
+                    e.currentTarget.src =
+                      'https://via.placeholder.com/400x300?text=No+Image';
                   }}
                 />
               )}
@@ -206,7 +209,10 @@ export function LandingSettingsPage() {
         apiUrl={apiUrl}
       />
 
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>حذف تنظیمات</AlertDialogTitle>
@@ -243,11 +249,31 @@ function LandingSettingFormDialog({
 }: LandingSettingFormDialogProps) {
   const [key, setKey] = useState(initialData?.key || '');
   const [titleValue, setTitleValue] = useState(initialData?.title || '');
-  const [description, setDescription] = useState(initialData?.description || '');
+  const [description, setDescription] = useState(
+    initialData?.description || ''
+  );
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>(
     initialData?.image ? `${apiUrl}/${initialData.image}` : ''
   );
+
+  useEffect(() => {
+    if (initialData) {
+      setKey(initialData.key || '');
+      setTitleValue(initialData.title || '');
+      setDescription(initialData.description || '');
+      setImagePreview(
+        initialData.image ? `${apiUrl}/${initialData.image}` : ''
+      );
+      setImageFile(null);
+    } else {
+      setKey('');
+      setTitleValue('');
+      setDescription('');
+      setImagePreview('');
+      setImageFile(null);
+    }
+  }, [initialData, apiUrl]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -283,79 +309,80 @@ function LandingSettingFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
-            فیلدهای مورد نیاز را پر کنید
-          </DialogDescription>
+          <DialogDescription>فیلدهای مورد نیاز را پر کنید</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">کلید (Key)</label>
-            <Input
-              value={key}
-              onChange={(e) => setKey(e.target.value)}
-              placeholder="مثال: hero_section, about_us"
-              required
-              pattern="[a-zA-Z0-9_-]+"
-              title="فقط حروف انگلیسی، اعداد، خط تیره و زیرخط مجاز است"
-            />
-            <p className="text-xs text-neutral-500">
-              از این کلید برای جستجو استفاده می‌شود (فقط انگلیسی، اعداد و _-)
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">عنوان</label>
-            <Input
-              value={titleValue}
-              onChange={(e) => setTitleValue(e.target.value)}
-              placeholder="عنوان تنظیمات"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">توضیحات</label>
-            <CkEditor
-              initialContent={description}
-              onChange={setDescription}
-              apiUrl={apiUrl}
-              onError={(msg) => showToast.error(msg)}
-              onSuccess={(msg) => showToast.success(msg)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">تصویر</label>
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              required={!initialData}
-            />
-            {imagePreview && (
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="w-full h-48 object-cover rounded-md mt-2"
-                onError={(e) => {
-                  e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Error';
-                }}
+        <div className="overflow-y-auto flex-1">
+          <form onSubmit={handleSubmit} className="space-y-4 p-1">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">کلید (Key)</label>
+              <Input
+                value={key}
+                onChange={(e) => setKey(e.target.value)}
+                placeholder="مثال: hero_section, about_us"
+                required
+                pattern="[a-zA-Z0-9_-]+"
+                title="فقط حروف انگلیسی، اعداد، خط تیره و زیرخط مجاز است"
               />
-            )}
-          </div>
+              <p className="text-xs text-neutral-500">
+                از این کلید برای جستجو استفاده می‌شود (فقط انگلیسی، اعداد و _-)
+              </p>
+            </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              لغو
-            </Button>
-            <Button type="submit">
-              {initialData ? 'بروزرسانی' : 'ایجاد'}
-            </Button>
-          </DialogFooter>
-        </form>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">عنوان</label>
+              <Input
+                value={titleValue}
+                onChange={(e) => setTitleValue(e.target.value)}
+                placeholder="عنوان تنظیمات"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">توضیحات</label>
+              <CkEditor
+                initialContent={description}
+                onChange={setDescription}
+                apiUrl={apiUrl}
+                onError={(msg) => showToast.error(msg)}
+                onSuccess={(msg) => showToast.success(msg)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">تصویر</label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                required={!initialData}
+              />
+              {imagePreview && (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-full h-48 object-cover rounded-md mt-2"
+                  onError={(e) => {
+                    e.currentTarget.src =
+                      'https://via.placeholder.com/400x300?text=Error';
+                  }}
+                />
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={onClose}>
+                لغو
+              </Button>
+              <Button type="submit">
+                {initialData ? 'بروزرسانی' : 'ایجاد'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
