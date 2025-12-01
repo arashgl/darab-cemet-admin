@@ -49,8 +49,11 @@ export interface PaginatedResponse<T> {
 
 export interface ApiError {
   statusCode: number;
+  timestamp: string;
+  path: string;
+  method: string;
   message: string | string[];
-  error?: string;
+  error: string;
 }
 
 export enum MediaType {

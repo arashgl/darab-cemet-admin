@@ -1,4 +1,4 @@
-import { uploadApi } from '@/lib/api';
+import { uploadClient } from '@/api/client';
 import { ApiError } from '@/types/dashboard';
 import axios, { AxiosError, CancelTokenSource } from 'axios';
 
@@ -19,7 +19,10 @@ export class CustomUploadAdapter {
   private onSuccess?: (msg: string) => void;
   private onError?: (msg: string) => void;
 
-  constructor(loader: CKEditorLoader, { apiUrl, onSuccess, onError }: UploaderConfig) {
+  constructor(
+    loader: CKEditorLoader,
+    { apiUrl, onSuccess, onError }: UploaderConfig
+  ) {
     this.loader = loader;
     this.cancelSource = axios.CancelToken.source();
     this.apiUrl = apiUrl;
@@ -34,7 +37,7 @@ export class CustomUploadAdapter {
     formData.append('images', file);
 
     try {
-      const res = await uploadApi.post(
+      const res = await uploadClient.post(
         '/posts/upload-content-images',
         formData,
         {
@@ -85,6 +88,7 @@ export function CustomUploadAdapterPlugin(editor: CKEditorInstance) {
     console.warn('[CKEditor] Missing `config.uploader.apiUrl`');
   }
 
-  editor.plugins.get('FileRepository').createUploadAdapter = (loader: CKEditorLoader) =>
-    new CustomUploadAdapter(loader, uploaderConfig);
+  editor.plugins.get('FileRepository').createUploadAdapter = (
+    loader: CKEditorLoader
+  ) => new CustomUploadAdapter(loader, uploaderConfig);
 }

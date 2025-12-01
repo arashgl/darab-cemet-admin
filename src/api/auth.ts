@@ -32,6 +32,11 @@ export const authService = {
     const response = await apiClient.get('/auth/me');
     return response.data;
   },
+
+  verifyToken: async (): Promise<{ success: boolean; message: string }> => {
+    const response = await apiClient.get('/auth/verify');
+    return response.data;
+  },
 };
 
 // Auth hooks
@@ -69,6 +74,17 @@ export const useLogout = () => {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       queryClient.clear();
+    },
+  });
+};
+
+export const useVerifyToken = () => {
+  return useMutation({
+    mutationFn: authService.verifyToken,
+    onError: () => {
+      // If token verification fails, clear auth state
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
     },
   });
 };

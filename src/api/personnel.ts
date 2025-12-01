@@ -1,6 +1,6 @@
-import { uploadApi } from '@/lib/api';
 import { PaginatedResponse, Personnel, PersonnelType } from '@/types/dashboard';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { uploadClient } from './client';
 
 // Query keys
 export const PERSONNEL_KEYS = {
@@ -35,7 +35,7 @@ export const usePersonnelList = (params?: PersonnelListParams) => {
       if (params?.position) searchParams.append('position', params.position);
       if (params?.search) searchParams.append('search', params.search);
 
-      const response = await uploadApi.get(
+      const response = await uploadClient.get(
         `/personnel?${searchParams.toString()}`
       );
       return response.data;
@@ -49,7 +49,7 @@ export const usePersonnel = (id: string) => {
   return useQuery({
     queryKey: PERSONNEL_KEYS.detail(id),
     queryFn: async (): Promise<Personnel> => {
-      const response = await uploadApi.get(`/personnel/${id}`);
+      const response = await uploadClient.get(`/personnel/${id}`);
       return response.data;
     },
     enabled: !!id,
@@ -62,7 +62,7 @@ export const useCreatePersonnel = () => {
 
   return useMutation({
     mutationFn: async (formData: FormData): Promise<Personnel> => {
-      const response = await uploadApi.post('/personnel', formData, {
+      const response = await uploadClient.post('/personnel', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -87,7 +87,7 @@ export const useUpdatePersonnel = () => {
       id: string;
       formData: FormData;
     }): Promise<Personnel> => {
-      const response = await uploadApi.patch(`/personnel/${id}`, formData, {
+      const response = await uploadClient.patch(`/personnel/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -109,7 +109,7 @@ export const useDeletePersonnel = () => {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      await uploadApi.delete(`/personnel/${id}`);
+      await uploadClient.delete(`/personnel/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PERSONNEL_KEYS.lists() });

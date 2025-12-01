@@ -2,7 +2,6 @@ import { useCategories } from '@/api/categories';
 import { useDeletePost, usePosts } from '@/api/posts';
 import { CreatePostForm } from '@/components/dashboard/CreatePostForm';
 import { DeletePostDialog } from '@/components/dashboard/DeletePostDialog';
-import { EditPostDialog } from '@/components/dashboard/EditPostDialog';
 import { FilterBar } from '@/components/molecules/FilterBar';
 import { PostsList } from '@/components/organisms/PostsList';
 import { Button } from '@/components/ui/button';
@@ -16,14 +15,14 @@ import {
 import { showToast } from '@/lib/toast';
 import { Post } from '@/types/dashboard';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export function PostsPage() {
+  const navigate = useNavigate();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
 
@@ -48,8 +47,7 @@ export function PostsPage() {
 
   // Event handlers
   const handleEdit = (post: Post) => {
-    setSelectedPost(post);
-    setIsEditDialogOpen(true);
+    navigate(`/posts/${post.id}/edit`);
   };
 
   const handleDelete = async () => {
@@ -86,12 +84,6 @@ export function PostsPage() {
   const handleCreateSuccess = () => {
     showToast.success('پست با موفقیت ایجاد شد');
     setShowCreateForm(false);
-    refetchPosts();
-  };
-
-  const handleEditSuccess = () => {
-    showToast.success('پست با موفقیت بروزرسانی شد');
-    setIsEditDialogOpen(false);
     refetchPosts();
   };
 
@@ -155,15 +147,6 @@ export function PostsPage() {
           />
         </>
       )}
-
-      <EditPostDialog
-        post={selectedPost}
-        isOpen={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        onSuccess={handleEditSuccess}
-        onError={(message: string) => showToast.error(message)}
-        apiUrl={apiUrl}
-      />
 
       {postToDelete && (
         <DeletePostDialog

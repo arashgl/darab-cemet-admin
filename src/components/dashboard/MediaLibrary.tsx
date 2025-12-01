@@ -1,3 +1,4 @@
+import { apiClient } from '@/api/client';
 import { PaginationControls } from '@/components/molecules/PaginationControls';
 import {
   AlertDialog,
@@ -20,9 +21,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import api from '@/lib/api';
-import { ApiError, Media, MediaType, PaginationMeta } from '@/types/dashboard';
-import axios from 'axios';
+import { Media, MediaType, PaginationMeta } from '@/types/dashboard';
+import { getErrorMessage } from '@/utils/error';
 import { Film, Image, Loader2, Upload, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -60,18 +60,7 @@ export function MediaLibrary({
 
   const handleApiError = useCallback(
     (error: unknown, defaultMessage: string) => {
-      let errorMessage = defaultMessage;
-
-      if (axios.isAxiosError(error)) {
-        const axiosError = error as import('axios').AxiosError<ApiError>;
-        if (axiosError.response?.data?.message) {
-          errorMessage =
-            typeof axiosError.response.data.message === 'string'
-              ? axiosError.response.data.message
-              : axiosError.response.data.message[0];
-        }
-      }
-
+      const errorMessage = getErrorMessage(error, defaultMessage);
       onError?.(errorMessage);
     },
     [onError]
@@ -85,7 +74,7 @@ export function MediaLibrary({
         url += `&type=${mediaType}`;
       }
 
-      const response = await api.get(url);
+      const response = await apiClient.get(url);
       setMediaItems(response.data.data || []);
       setPagination(
         response.data.meta || {
@@ -123,7 +112,7 @@ export function MediaLibrary({
 
     setUploadLoading(true);
     try {
-      await api.post('/media/upload', formData, {
+      await apiClient.post('/media/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -147,7 +136,7 @@ export function MediaLibrary({
     if (!selectedMedia) return;
 
     try {
-      await api.delete(`/media/${selectedMedia.id}`);
+      await apiClient.delete(`/media/${selectedMedia.id}`);
       onSuccess?.('فایل با موفقیت حذف شد');
       fetchMedia();
     } catch (error) {

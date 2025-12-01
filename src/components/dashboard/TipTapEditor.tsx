@@ -1,11 +1,10 @@
-import { useRef } from "react";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Image from "@tiptap/extension-image";
-import { Button } from "@/components/ui/button";
-import { uploadApi } from "@/lib/api";
-import axios, { AxiosError } from "axios";
-import { ApiError } from "@/types/dashboard";
+import { uploadClient } from '@/api/client';
+import { Button } from '@/components/ui/button';
+import { getErrorMessage } from '@/utils/error';
+import Image from '@tiptap/extension-image';
+import { EditorContent, useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { useRef } from 'react';
 
 interface TipTapEditorProps {
   initialContent: string;
@@ -46,14 +45,14 @@ export function TipTapEditor({
 
       try {
         const formData = new FormData();
-        formData.append("images", file);
+        formData.append('images', file);
 
-        const response = await uploadApi.post(
-          "/posts/upload-content-images",
+        const response = await uploadClient.post(
+          '/posts/upload-content-images',
           formData,
           {
             headers: {
-              "Content-Type": "multipart/form-data",
+              'Content-Type': 'multipart/form-data',
             },
           }
         );
@@ -70,27 +69,19 @@ export function TipTapEditor({
           // Insert the image at the current position
           editor.commands.setImage({
             src: fullImageUrl,
-            alt: "Uploaded image",
+            alt: 'Uploaded image',
           });
 
-          onSuccess("تصویر با موفقیت اضافه شد");
+          onSuccess('تصویر با موفقیت اضافه شد');
         }
       } catch (error) {
-        console.error("Error uploading image:", error);
-
-        let errorMessage = "خطا در آپلود تصویر";
-        if (axios.isAxiosError(error)) {
-          const axiosError = error as AxiosError<ApiError>;
-          if (axiosError.response?.data?.message) {
-            errorMessage = axiosError.response.data.message;
-          }
-        }
-
+        console.error('Error uploading image:', error);
+        const errorMessage = getErrorMessage(error, 'خطا در آپلود تصویر');
         onError(errorMessage);
       }
 
       // Reset the input value so the same file can be selected again
-      e.target.value = "";
+      e.target.value = '';
     }
   };
 
@@ -111,9 +102,9 @@ export function TipTapEditor({
             size="sm"
             onClick={() => editor?.chain().focus().toggleBold().run()}
             className={
-              editor?.isActive("bold")
-                ? "bg-neutral-200 dark:bg-neutral-600"
-                : ""
+              editor?.isActive('bold')
+                ? 'bg-neutral-200 dark:bg-neutral-600'
+                : ''
             }
           >
             B
@@ -124,9 +115,9 @@ export function TipTapEditor({
             size="sm"
             onClick={() => editor?.chain().focus().toggleItalic().run()}
             className={
-              editor?.isActive("italic")
-                ? "bg-neutral-200 dark:bg-neutral-600"
-                : ""
+              editor?.isActive('italic')
+                ? 'bg-neutral-200 dark:bg-neutral-600'
+                : ''
             }
           >
             I
@@ -139,9 +130,9 @@ export function TipTapEditor({
               editor?.chain().focus().toggleHeading({ level: 2 }).run()
             }
             className={
-              editor?.isActive("heading", { level: 2 })
-                ? "bg-neutral-200 dark:bg-neutral-600"
-                : ""
+              editor?.isActive('heading', { level: 2 })
+                ? 'bg-neutral-200 dark:bg-neutral-600'
+                : ''
             }
           >
             H2
@@ -152,9 +143,9 @@ export function TipTapEditor({
             size="sm"
             onClick={() => editor?.chain().focus().toggleBulletList().run()}
             className={
-              editor?.isActive("bulletList")
-                ? "bg-neutral-200 dark:bg-neutral-600"
-                : ""
+              editor?.isActive('bulletList')
+                ? 'bg-neutral-200 dark:bg-neutral-600'
+                : ''
             }
           >
             •

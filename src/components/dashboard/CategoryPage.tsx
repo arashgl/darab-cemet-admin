@@ -1,5 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { apiClient } from '@/api/client';
+import { showToast } from '@/lib/toast';
+import { Category } from '@/types/dashboard';
 import axios, { AxiosError } from 'axios';
+import { Pencil, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import {
   Card,
@@ -10,8 +14,13 @@ import {
 } from '../ui/card';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { showToast } from '@/lib/toast';
-import api from '@/lib/api';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 import {
   Table,
   TableBody,
@@ -20,16 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from '../ui/table';
-import { Pencil, Trash2 } from 'lucide-react';
-import { Category } from '@/types/dashboard';
 import { DeleteCategoryDialog } from './DeleteCategoryDialog';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '../ui/select';
 
 export function CategoryPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -94,10 +94,13 @@ export function CategoryPage() {
             : undefined,
       };
       if (editingCategory) {
-        await api.patch(`${apiUrl}/categories/${editingCategory.id}`, payload);
+        await apiClient.patch(
+          `${apiUrl}/categories/${editingCategory.id}`,
+          payload
+        );
         showToast.success('دسته‌بندی با موفقیت بروزرسانی شد');
       } else {
-        await api.post(`${apiUrl}/categories`, payload);
+        await apiClient.post(`${apiUrl}/categories`, payload);
         showToast.success('دسته‌بندی با موفقیت ایجاد شد');
       }
       resetForm();
@@ -134,7 +137,7 @@ export function CategoryPage() {
     if (!categoryToDelete) return;
 
     try {
-      await api.delete(`${apiUrl}/categories/${categoryToDelete.id}`);
+      await apiClient.delete(`${apiUrl}/categories/${categoryToDelete.id}`);
       showToast.success('دسته‌بندی با موفقیت حذف شد');
       fetchCategories();
     } catch (error) {

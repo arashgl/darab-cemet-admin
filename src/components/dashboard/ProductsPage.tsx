@@ -1,21 +1,4 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { apiClient } from '@/api/client';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,12 +8,29 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import toast from "react-hot-toast";
-import { ProductForm } from "./ProductForm";
-import { API_URL } from "@/lib/constants";
-import api from "@/lib/api";
-import { Product } from "@/types/product";
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { API_URL } from '@/lib/constants';
+import { Product } from '@/types/product';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import { ProductForm } from './ProductForm';
 
 export function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -55,7 +55,7 @@ export function ProductsPage() {
       setProducts(response.data.items);
       setPagination(response.data.pagination);
     } catch (error) {
-      console.error("Error fetching products:", error);
+      console.error('Error fetching products:', error);
     } finally {
       setLoading(false);
     }
@@ -88,14 +88,14 @@ export function ProductsPage() {
     if (!productToDelete) return;
 
     try {
-      await api.delete(`${API_URL}/products/${productToDelete}`);
-      toast.success("محصول با موفقیت حذف شد.");
+      await apiClient.delete(`${API_URL}/products/${productToDelete}`);
+      toast.success('محصول با موفقیت حذف شد.');
       fetchProducts(pagination.page);
       setProductToDelete(null);
       setIsDeleteDialogOpen(false);
     } catch (error) {
-      console.error("Error deleting product:", error);
-      toast.error("خطا در حذف محصول.");
+      console.error('Error deleting product:', error);
+      toast.error('خطا در حذف محصول.');
     }
   };
 
@@ -119,7 +119,7 @@ export function ProductsPage() {
         <Card>
           <CardHeader>
             <CardTitle>
-              {selectedProduct ? "ویرایش محصول" : "افزودن محصول"}
+              {selectedProduct ? 'ویرایش محصول' : 'افزودن محصول'}
             </CardTitle>
             <CardDescription>اطلاعات محصول را وارد کنید</CardDescription>
           </CardHeader>
@@ -176,19 +176,19 @@ export function ProductsPage() {
                         </TableCell>
                         <TableCell>{product.name}</TableCell>
                         <TableCell>
-                          {product.type === "cement"
-                            ? "سیمان"
-                            : product.type === "concrete"
-                            ? "بتن"
-                            : "سایر"}
+                          {product.type === 'cement'
+                            ? 'سیمان'
+                            : product.type === 'concrete'
+                            ? 'بتن'
+                            : 'سایر'}
                         </TableCell>
 
                         <TableCell>
                           {product.createdAt
                             ? new Date(product.createdAt).toLocaleDateString(
-                                "fa-IR"
+                                'fa-IR'
                               )
-                            : "-"}
+                            : '-'}
                         </TableCell>
                         <TableCell>
                           <div className="flex space-x-2 space-x-reverse">
@@ -223,7 +223,7 @@ export function ProductsPage() {
                   (page) => (
                     <Button
                       key={page}
-                      variant={page === pagination.page ? "default" : "outline"}
+                      variant={page === pagination.page ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => handlePageChange(page)}
                     >

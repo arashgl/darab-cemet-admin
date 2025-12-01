@@ -1,6 +1,7 @@
+import { uploadClient } from '@/api/client';
 import { Button } from '@/components/ui/button';
-import { uploadApi } from '@/lib/api';
-import { ApiError, Media } from '@/types/dashboard';
+import { Media } from '@/types/dashboard';
+import { getErrorMessage } from '@/utils/error';
 import { $generateHtmlFromNodes } from '@lexical/html';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 
@@ -15,7 +16,6 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { $createHeadingNode, HeadingNode } from '@lexical/rich-text';
-import axios, { AxiosError } from 'axios';
 import {
   $createParagraphNode,
   $createTextNode,
@@ -60,7 +60,7 @@ function ImagePlugin({
         const formData = new FormData();
         formData.append('images', file);
 
-        const response = await uploadApi.post(
+        const response = await uploadClient.post(
           '/posts/upload-content-images',
           formData,
           {
@@ -91,19 +91,7 @@ function ImagePlugin({
         }
       } catch (error) {
         console.error('Error uploading image:', error);
-
-        let errorMessage = 'خطا در آپلود تصویر';
-        if (axios.isAxiosError(error)) {
-          const axiosError = error as AxiosError<ApiError>;
-          if (axiosError.response?.data?.message) {
-            if (typeof axiosError.response.data.message === 'string') {
-              errorMessage = axiosError.response.data.message;
-            } else if (Array.isArray(axiosError.response.data.message)) {
-              errorMessage = axiosError.response.data.message[0];
-            }
-          }
-        }
-
+        const errorMessage = getErrorMessage(error, 'خطا در آپلود تصویر');
         onError(errorMessage);
       }
 

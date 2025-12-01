@@ -1,3 +1,4 @@
+import { apiClient, uploadClient } from '@/api/client';
 import { CkEditor } from '@/components/dashboard/CKEditor';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,9 +10,8 @@ import {
 } from '@/components/ui/card';
 import { AttachmentFile, FileUploader } from '@/components/ui/file-uploader';
 import { Input } from '@/components/ui/input';
-import { PostSection, sections, uploadApi } from '@/lib/api';
-import { ApiError } from '@/types/dashboard';
-import axios, { AxiosError } from 'axios';
+import { POST_SECTIONS, PostSection } from '@/constants/posts';
+import { getErrorMessage } from '@/utils/error';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -56,7 +56,7 @@ export function CreatePostForm({
     const fetchCategories = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get(`${apiUrl}/categories`);
+        const response = await apiClient.get(`${apiUrl}/categories`);
         setCategories(response.data);
       } catch (error) {
         console.error('Error fetching categories:', error);
@@ -200,7 +200,7 @@ export function CreatePostForm({
         formData.append('attachments', attachment.file, attachment.file.name);
       });
 
-      const response = await uploadApi.post('/posts', formData, {
+      const response = await uploadClient.post('/posts', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -222,16 +222,10 @@ export function CreatePostForm({
       setPreviewImage(null);
       setAttachments([]);
     } catch (error) {
-      let errorMessage = 'ایجاد پست با مشکل مواجه شد. لطفا دوباره تلاش کنید.';
-
-      if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError<ApiError>;
-        if (axiosError.response?.data?.message) {
-          const message = axiosError.response.data.message;
-          errorMessage = Array.isArray(message) ? message[0] : message;
-        }
-      }
-
+      const errorMessage = getErrorMessage(
+        error,
+        'ایجاد پست با مشکل مواجه شد. لطفا دوباره تلاش کنید.'
+      );
       onError(errorMessage);
     } finally {
       setIsCreating(false);
@@ -273,7 +267,7 @@ export function CreatePostForm({
                 required
                 className="flex h-10 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-950 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300"
               >
-                {sections.map((s) => (
+                {POST_SECTIONS.map((s) => (
                   <option key={s.value} value={s.value}>
                     {s.label}
                   </option>

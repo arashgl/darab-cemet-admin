@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -9,23 +7,25 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
-import { API_URL } from "@/lib/constants";
-import { uploadApi } from "@/lib/api";
-import { showToast } from "@/lib/toast";
-import { Product } from "@/types/product";
-import { Category } from "@/types/dashboard";
-import axios from "axios";
+import { uploadClient } from '@/api/client';
+import { API_URL } from '@/lib/constants';
+import { showToast } from '@/lib/toast';
+import { Category } from '@/types/dashboard';
+import { Product } from '@/types/product';
+import axios from 'axios';
 
 interface FormData {
   name: string;
@@ -52,22 +52,22 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
 
   const form = useForm<FormData>({
     defaultValues: {
-      name: product?.name || "",
-      type: product?.type || "cement",
-      description: product?.description || "",
-      features: product?.features ? product.features.join("\n") : "",
-      advantages: product?.advantages ? product.advantages.join("\n") : "",
+      name: product?.name || '',
+      type: product?.type || 'cement',
+      description: product?.description || '',
+      features: product?.features ? product.features.join('\n') : '',
+      advantages: product?.advantages ? product.advantages.join('\n') : '',
       applications: product?.applications
-        ? product.applications.join("\n")
-        : "",
+        ? product.applications.join('\n')
+        : '',
       technicalSpecs: product?.technicalSpecs
-        ? product.technicalSpecs.join("\n")
-        : "",
+        ? product.technicalSpecs.join('\n')
+        : '',
       categoryId: product?.category?.id
         ? String(product.category.id)
         : product?.categoryId
         ? String(product.categoryId)
-        : "0",
+        : '0',
       isActive: product?.isActive ?? true,
     },
   });
@@ -79,8 +79,8 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
         const response = await axios.get(`${API_URL}/categories`);
         setCategories(response.data || []);
       } catch (error) {
-        console.error("Error fetching categories:", error);
-        showToast.error("دریافت دسته‌بندی‌ها با مشکل مواجه شد");
+        console.error('Error fetching categories:', error);
+        showToast.error('دریافت دسته‌بندی‌ها با مشکل مواجه شد');
       }
     };
 
@@ -100,16 +100,16 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
     try {
       // Parse the multiline text fields into arrays
       const featuresArray = data.features
-        ? data.features.split("\n").filter(Boolean)
+        ? data.features.split('\n').filter(Boolean)
         : [];
       const advantagesArray = data.advantages
-        ? data.advantages.split("\n").filter(Boolean)
+        ? data.advantages.split('\n').filter(Boolean)
         : [];
       const applicationsArray = data.applications
-        ? data.applications.split("\n").filter(Boolean)
+        ? data.applications.split('\n').filter(Boolean)
         : [];
       const technicalSpecsArray = data.technicalSpecs
-        ? data.technicalSpecs.split("\n").filter(Boolean)
+        ? data.technicalSpecs.split('\n').filter(Boolean)
         : [];
 
       // Create the base payload with properly typed values
@@ -133,11 +133,11 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
       };
 
       // Add categoryId only if it's not "0"
-      if (data.categoryId !== "0") {
+      if (data.categoryId !== '0') {
         payload.categoryId = parseInt(data.categoryId, 10);
       }
 
-      const hasImage = document.getElementById("image") as HTMLInputElement;
+      const hasImage = document.getElementById('image') as HTMLInputElement;
       const hasImageFile =
         hasImage && hasImage.files && hasImage.files.length > 0;
 
@@ -153,7 +153,7 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
             value.forEach((item) => {
               formData.append(`${key}[]`, item);
             });
-          } else if (typeof value === "boolean") {
+          } else if (typeof value === 'boolean') {
             // Send boolean as string 'true' or 'false'
             formData.append(key, String(value));
           } else if (value !== null && value !== undefined) {
@@ -163,30 +163,30 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
         });
 
         // Add image file
-        formData.append("image", hasImage.files![0]);
+        formData.append('image', hasImage.files![0]);
 
         // For debugging purposes
         console.log(
-          "Payload being sent:",
+          'Payload being sent:',
           Object.fromEntries(formData.entries())
         );
 
         try {
           if (product) {
-            await uploadApi.patch(`/products/${product.id}`, formData, {
+            await uploadClient.patch(`/products/${product.id}`, formData, {
               headers: {
-                "Content-Type": "multipart/form-data",
+                'Content-Type': 'multipart/form-data',
               },
             });
           } else {
-            await uploadApi.post(`/products`, formData, {
+            await uploadClient.post(`/products`, formData, {
               headers: {
-                "Content-Type": "multipart/form-data",
+                'Content-Type': 'multipart/form-data',
               },
             });
           }
         } catch (error) {
-          console.error("Error submitting with image:", error);
+          console.error('Error submitting with image:', error);
 
           // As a last resort, try to use URLSearchParams which might handle boolean conversion better
           const urlParams = new URLSearchParams();
@@ -211,19 +211,19 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
       } else {
         // Without image, send JSON directly - this already has proper typing
         if (product) {
-          await uploadApi.patch(`/products/${product.id}`, payload);
+          await uploadClient.patch(`/products/${product.id}`, payload);
         } else {
-          await uploadApi.post(`/products`, payload);
+          await uploadClient.post(`/products`, payload);
         }
       }
 
       showToast.success(
-        product ? "محصول با موفقیت بروزرسانی شد" : "محصول با موفقیت ایجاد شد"
+        product ? 'محصول با موفقیت بروزرسانی شد' : 'محصول با موفقیت ایجاد شد'
       );
 
       onSubmit();
     } catch (error: unknown) {
-      console.error("Error submitting product:", error);
+      console.error('Error submitting product:', error);
 
       // Handle validation errors
       const apiError = error as {
@@ -238,13 +238,13 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
         const fieldErrors: Record<string, string> = {};
 
         errors.forEach((err: string) => {
-          if (err.includes("features")) {
+          if (err.includes('features')) {
             fieldErrors.features = err;
-          } else if (err.includes("advantages")) {
+          } else if (err.includes('advantages')) {
             fieldErrors.advantages = err;
-          } else if (err.includes("applications")) {
+          } else if (err.includes('applications')) {
             fieldErrors.applications = err;
-          } else if (err.includes("technicalSpecs")) {
+          } else if (err.includes('technicalSpecs')) {
             fieldErrors.technicalSpecs = err;
           } else {
             // Generic error
@@ -255,12 +255,12 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
         // Apply errors to form fields
         Object.entries(fieldErrors).forEach(([field, message]) => {
           form.setError(field as keyof FormData, {
-            type: "manual",
+            type: 'manual',
             message,
           });
         });
       } else {
-        showToast.error("خطایی در ثبت محصول رخ داد. لطفا دوباره تلاش کنید.");
+        showToast.error('خطایی در ثبت محصول رخ داد. لطفا دوباره تلاش کنید.');
       }
     } finally {
       setIsSubmitting(false);
@@ -481,10 +481,10 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting
-              ? "در حال ذخیره‌سازی..."
+              ? 'در حال ذخیره‌سازی...'
               : product
-              ? "بروزرسانی"
-              : "ذخیره"}
+              ? 'بروزرسانی'
+              : 'ذخیره'}
           </Button>
         </div>
       </form>

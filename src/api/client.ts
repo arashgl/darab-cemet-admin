@@ -2,8 +2,9 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-console.log('API_BASE_URL', API_BASE_URL);
-// Create base axios instance
+/**
+ * Base axios instance for JSON API calls
+ */
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -11,7 +12,9 @@ export const apiClient = axios.create({
   },
 });
 
-// Create upload axios instance
+/**
+ * Axios instance for file uploads (multipart/form-data)
+ */
 export const uploadClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -19,7 +22,9 @@ export const uploadClient = axios.create({
   },
 });
 
-// Request interceptor to add auth token
+/**
+ * Request interceptor to add auth token to all requests
+ */
 const addAuthInterceptor = (client: typeof apiClient) => {
   client.interceptors.request.use(
     (config) => {
@@ -33,7 +38,10 @@ const addAuthInterceptor = (client: typeof apiClient) => {
   );
 };
 
-// Response interceptor for error handling
+/**
+ * Response interceptor for global error handling
+ * - 401: Clear auth and redirect to login
+ */
 const addResponseInterceptor = (client: typeof apiClient) => {
   client.interceptors.response.use(
     (response) => response,
@@ -41,13 +49,17 @@ const addResponseInterceptor = (client: typeof apiClient) => {
       if (error.response?.status === 401) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        // Redirect to login page
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
       }
       return Promise.reject(error);
     }
   );
 };
 
-// Apply interceptors
+// Apply interceptors to both clients
 addAuthInterceptor(apiClient);
 addAuthInterceptor(uploadClient);
 addResponseInterceptor(apiClient);

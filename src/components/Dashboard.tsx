@@ -1,4 +1,4 @@
-import api from '@/lib/api';
+import { apiClient } from '@/api/client';
 import { showToast } from '@/lib/toast';
 import { Category, Post } from '@/types/dashboard';
 import axios from 'axios';
@@ -126,7 +126,7 @@ const PostsPage = () => {
     if (!postToDelete) return;
 
     try {
-      await api.delete(`${apiUrl}/posts/${postToDelete.id}`);
+      await apiClient.delete(`${apiUrl}/posts/${postToDelete.id}`);
       showToast.success('پست با موفقیت حذف شد!');
       fetchPosts(pagination.currentPage);
     } catch {

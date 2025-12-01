@@ -4,7 +4,6 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${localStorage.getItem('token')}`,
   },
 });
 
@@ -23,63 +22,66 @@ export const sections = [
   { value: PostSection.ACHIEVEMENTS, label: 'افتخارات' },
   { value: PostSection.SLIDER, label: 'اسلایدر' },
 ];
-// Variable to store interceptor IDs
-let apiInterceptorId: number | null = null;
-let uploadApiInterceptorId: number | null = null;
 
-// Add a request interceptor to include the auth token on every request
-export const setupApiInterceptors = (token: string) => {
-  // Remove previous interceptor if exists
-  if (apiInterceptorId !== null) {
-    api.interceptors.request.eject(apiInterceptorId);
-  }
-
-  // Add new interceptor and store its ID
-  apiInterceptorId = api.interceptors.request.use(
-    (config) => {
-      // Always get the latest token (either from param or localStorage)
-      const currentToken = token || localStorage.getItem('token');
-      if (currentToken) {
-        config.headers.Authorization = `Bearer ${currentToken}`;
-      }
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
+// Add request interceptor to dynamically add auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-  );
-};
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Special instance for uploading files (with multipart/form-data)
 export const uploadApi = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: {
     'Content-Type': 'multipart/form-data',
-    Authorization: `Bearer ${localStorage.getItem('token')}`,
   },
 });
 
-// Add a request interceptor to include the auth token on upload requests
-export const setupUploadApiInterceptors = (token: string) => {
-  // Remove previous interceptor if exists
-  if (uploadApiInterceptorId !== null) {
-    uploadApi.interceptors.request.eject(uploadApiInterceptorId);
-  }
-
-  // Add new interceptor and store its ID
-  uploadApiInterceptorId = uploadApi.interceptors.request.use(
-    (config) => {
-      // Always get the latest token (either from param or localStorage)
-      const currentToken = token || localStorage.getItem('token');
-      if (currentToken) {
-        config.headers.Authorization = `Bearer ${currentToken}`;
-      }
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
+// Add request interceptor to upload API for auth token
+uploadApi.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-  );
-};
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+uploadApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;
