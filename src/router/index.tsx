@@ -1,10 +1,10 @@
 import { authService } from '@/api/auth';
-import { MediaLibrary } from '@/components/dashboard/MediaLibrary';
 import { PersonnelPage } from '@/components/dashboard/PersonnelPage';
 import { LoginForm } from '@/components/pages/auth/LoginForm';
 import { CategoriesPage } from '@/components/pages/dashboard/CategoriesPage';
 import { EditPostPage } from '@/components/pages/dashboard/EditPostPage';
 import { LandingSettingsPage } from '@/components/pages/dashboard/LandingSettingsPage';
+import { MediaPage } from '@/components/pages/dashboard/MediaPage';
 import { PostsPage } from '@/components/pages/dashboard/PostsPage';
 import { ProductsPage } from '@/components/pages/dashboard/ProductsPage';
 import { TicketsPage } from '@/components/pages/dashboard/TicketsPage';
@@ -102,7 +102,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'media',
-        element: <MediaLibrary />,
+        element: <MediaPage />,
       },
       {
         path: 'tickets',

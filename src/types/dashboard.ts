@@ -59,18 +59,18 @@ export interface ApiError {
 export enum MediaType {
   IMAGE = 'image',
   VIDEO = 'video',
+  IFRAME = 'iframe',
 }
 
 export interface Media {
-  id: string;
-  filename: string;
-  originalname: string;
-  path: string;
+  id: number;
+  type: string;
+  title: string;
+  description: null;
+  coverImage: string;
   url: string;
-  mimetype: string;
-  size: number;
-  type: MediaType;
-  createdAt: string;
+  createdAt: Date;
+  tags: null;
 }
 
 export interface User {

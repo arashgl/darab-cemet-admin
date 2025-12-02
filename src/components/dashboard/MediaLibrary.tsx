@@ -162,13 +162,6 @@ export function MediaLibrary({
     }
   };
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return bytes + ' B';
-    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    else if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
-    else return (bytes / 1073741824).toFixed(1) + ' GB';
-  };
-
   const getIconForType = (type: MediaType) => {
     return type === MediaType.IMAGE ? (
       <Image className="w-5 h-5" />
@@ -263,7 +256,7 @@ export function MediaLibrary({
                     onClick={() => handleMediaClick(media)}
                   >
                     <CardContent className="p-0">
-                      {media.type === MediaType.IMAGE ? (
+                      {media.type !== MediaType.IFRAME ? (
                         <div
                           className="aspect-square w-full bg-neutral-100 dark:bg-neutral-800 relative"
                           style={{
@@ -279,9 +272,7 @@ export function MediaLibrary({
                           <Film className="h-12 w-12 text-neutral-400" />
                         </div>
                       )}
-                      <div className="p-2 text-xs truncate">
-                        {media.originalname}
-                      </div>
+                      <div className="p-2 text-xs truncate">{media.title}</div>
                       <button
                         className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
                         onClick={(e) => {
@@ -318,9 +309,6 @@ export function MediaLibrary({
                       <th className="py-3 px-4 text-right text-sm font-medium text-neutral-500 dark:text-neutral-400">
                         نام فایل
                       </th>
-                      <th className="py-3 px-4 text-right text-sm font-medium text-neutral-500 dark:text-neutral-400 w-24">
-                        حجم
-                      </th>
                       <th className="py-3 px-4 text-right text-sm font-medium text-neutral-500 dark:text-neutral-400 w-40">
                         تاریخ آپلود
                       </th>
@@ -341,12 +329,7 @@ export function MediaLibrary({
                         <td className="py-3 px-4 text-center">
                           {getIconForType(media.type as MediaType)}
                         </td>
-                        <td className="py-3 px-4 truncate">
-                          {media.originalname}
-                        </td>
-                        <td className="py-3 px-4">
-                          {formatFileSize(media.size)}
-                        </td>
+                        <td className="py-3 px-4 truncate">{media.title}</td>
                         <td className="py-3 px-4">
                           {new Date(media.createdAt).toLocaleDateString(
                             'fa-IR'
@@ -358,6 +341,7 @@ export function MediaLibrary({
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
+                              console.log('delete', media.id);
                               openDeleteDialog(media);
                             }}
                           >

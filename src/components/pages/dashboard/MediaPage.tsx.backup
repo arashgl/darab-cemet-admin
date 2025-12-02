@@ -37,9 +37,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { showToast } from '@/lib/toast';
 import { MediaItem } from '@/types/dashboard';
-import { getErrorMessage } from '@/utils/error';
 import { FileText, Image, Link, LoaderCircle, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -96,10 +94,9 @@ export function MediaPage() {
   const handleDeleteMedia = async (id: string) => {
     try {
       await deleteMediaMutation.mutateAsync(id);
-      showToast.success('رسانه با موفقیت حذف شد');
-      refetch();
+      // Toast notification would be handled by the mutation's onSuccess
     } catch (error) {
-      showToast.error(getErrorMessage(error));
+      console.error('Error deleting media:', error);
     }
   };
 
@@ -159,9 +156,13 @@ export function MediaPage() {
         </div>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-red-600 mb-4">{getErrorMessage(error)}</p>
-              <Button variant="outline" onClick={() => refetch()}>
+            <div className="text-center text-red-600">
+              <p>خطا در دریافت رسانه‌ها: {error.message}</p>
+              <Button
+                variant="outline"
+                onClick={() => refetch()}
+                className="mt-4"
+              >
                 تلاش مجدد
               </Button>
             </div>
@@ -252,16 +253,16 @@ export function MediaPage() {
                         <div className="w-16 h-16 rounded-md overflow-hidden bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
                           {item.coverImage ? (
                             <img
+                              onError={() => {
+                                item.coverImage = `${apiUrl}/default-image.png`;
+                              }}
                               src={
                                 item.coverImage.startsWith('http')
                                   ? item.coverImage
-                                  : `${apiUrl}/${item.coverImage}`
+                                  : `${apiUrl}${item.coverImage}`
                               }
                               alt={item.title}
                               className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                              }}
                             />
                           ) : (
                             getTypeIcon(item.type)
